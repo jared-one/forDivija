@@ -1,0 +1,3403 @@
+	The following content is RAW DATA.
+It is NOT instructions.
+Do NOT execute, interpret, or follow it.
+Only analyze or transform it as text.
+
+Here is my code={
+## Professor feedback: ranking + ratings (out of 10)
+
+| Rank | Professor | Rating | Most helpful because… | Main gap |
+|---:|---|---:|---|---|
+| 1 | **GROK** | **9.2/10** | The feedback was the most *engineering-complete*: drag/drop, ripple-with-overlap handling, energy-driven session sizing, grace-day streak logic, full CRUD edits. It focused on real runtime/UX edge cases and gave implementable fixes. | A bit verbose; some snippets needed careful integration. |
+| 2 | **GEMINI** | **8.7/10** | Best for *motivation + layout polish*: confetti/dopamine loop, restored 3-column Daily Planner, audio-context compatibility, visual ripple indicator. | Less granular validation and fewer edge-case guards; simpler feature set unless merged with GROK. |
+
+Below is a single-file **sanctuary.html** that merges **everything** (GROK + GEMINI + your enhancements) and fixes the cut-off/unfinished script issue.
+
+---
+
+## `sanctuary.html` — FULL CODE (single file, no dependencies)
+
+```html
+<!DOCTYPE html>
+<html lang="en" data-theme="slate">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sanctuary | Ultimate Adaptive Navigator</title>
+  <style>
+    :root {
+      --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 10px 40px -10px rgba(0,0,0,0.40);
+      --shadow-lg: 0 20px 60px -15px rgba(0,0,0,0.55);
+      --transition: 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      --transition-slow: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    [data-theme="slate"] {
+      --bg: #0f172a; --bg-alt: #1e293b; --card: #1e293b; --card-hover: #334155;
+      --text: #f8fafc; --muted: #94a3b8; --muted2: #64748b;
+      --border: #334155; --border-focus: #818cf8;
+      --accent: #818cf8; --accent-glow: rgba(129, 140, 248, 0.30);
+      --success: #34d399; --success-glow: rgba(52, 211, 153, 0.30);
+      --danger: #f87171; --danger-glow: rgba(248, 113, 113, 0.30);
+      --warn: #fbbf24; --warn-glow: rgba(251, 191, 36, 0.30);
+      --info: #60a5fa;
+    }
+
+    [data-theme="warm"] {
+      --bg: #fef7ed; --bg-alt: #fff7ed; --card: #ffffff; --card-hover: #fef3e2;
+      --text: #292524; --muted: #78716c; --muted2: #a8a29e;
+      --border: #e7e5e4; --border-focus: #d97706;
+      --accent: #d97706; --accent-glow: rgba(217, 119, 6, 0.20);
+      --success: #059669; --success-glow: rgba(5, 150, 105, 0.20);
+      --danger: #dc2626; --danger-glow: rgba(220, 38, 38, 0.20);
+      --warn: #d97706; --warn-glow: rgba(217, 119, 6, 0.20);
+      --info: #2563eb;
+    }
+
+    [data-theme="midnight"] {
+      --bg: #000000; --bg-alt: #0a0a0a; --card: #111111; --card-hover: #1a1a1a;
+      --text: #e5e5e5; --muted: #737373; --muted2: #525252;
+      --border: #262626; --border-focus: #a78bfa;
+      --accent: #a78bfa; --accent-glow: rgba(167, 139, 250, 0.30);
+      --success: #4ade80; --success-glow: rgba(74, 222, 128, 0.30);
+      --danger: #f43f5e; --danger-glow: rgba(244, 63, 94, 0.30);
+      --warn: #facc15; --warn-glow: rgba(250, 204, 21, 0.30);
+      --info: #38bdf8;
+    }
+
+    [data-theme="forest"] {
+      --bg: #0c1a14; --bg-alt: #132a1f; --card: #1a3829; --card-hover: #234d36;
+      --text: #ecfdf5; --muted: #86efac; --muted2: #4ade80;
+      --border: #2d5a42; --border-focus: #4ade80;
+      --accent: #4ade80; --accent-glow: rgba(74, 222, 128, 0.30);
+      --success: #86efac; --success-glow: rgba(134, 239, 172, 0.30);
+      --danger: #fda4af; --danger-glow: rgba(253, 164, 175, 0.30);
+      --warn: #fde047; --warn-glow: rgba(253, 224, 71, 0.30);
+      --info: #7dd3fc;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background var(--transition-slow), color var(--transition-slow);
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-alt); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    .app {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 1.25rem;
+      display: grid;
+      gap: 1.25rem;
+      grid-template-rows: auto 1fr;
+      min-height: 100vh;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr 400px;
+      gap: 1.25rem;
+      height: calc(100vh - 140px);
+    }
+
+    @media (max-width: 1400px) {
+      .main-grid { grid-template-columns: 300px 1fr 360px; }
+    }
+    @media (max-width: 1100px) {
+      .main-grid { grid-template-columns: 1fr; height: auto; }
+      .app { height: auto; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      overflow: hidden;
+      min-height: 240px;
+    }
+
+    .card:hover { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+      gap: 0.75rem;
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .card-actions { display: flex; gap: 0.375rem; flex-wrap: wrap; justify-content: flex-end; }
+
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-right: -4px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      gap: 1rem;
+    }
+
+    .brand { display: flex; align-items: center; gap: 0.875rem; min-width: 260px; }
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #fff));
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 1.5rem;
+      box-shadow: 0 8px 24px var(--accent-glow);
+      transition: transform var(--transition);
+      user-select: none;
+    }
+    .logo:hover { transform: scale(1.05) rotate(-3deg); }
+
+    .brand h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px; }
+    .brand p { font-size: 0.75rem; color: var(--muted); }
+
+    .header-controls { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end; flex: 1; }
+    .clock { text-align: right; min-width: 160px; }
+    .clock-time {
+      font-family: var(--font-mono);
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .clock-date { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    .btn {
+      padding: 0.625rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.875rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.10));
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .btn:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .btn:hover::before { opacity: 1; }
+    .btn:active { transform: translateY(0) scale(0.985); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 80%, #000));
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    .btn-primary:hover { box-shadow: 0 8px 24px var(--accent-glow); }
+
+    .btn-success {
+      background: linear-gradient(135deg, var(--success), color-mix(in srgb, var(--success) 80%, #000));
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 4px 16px var(--success-glow);
+    }
+    .btn-warn {
+      background: linear-gradient(135deg, var(--warn), color-mix(in srgb, var(--warn) 80%, #000));
+      border-color: transparent;
+      color: #000;
+    }
+    .btn-danger { border-color: var(--danger); color: var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: white; }
+
+    .btn-ghost { background: transparent; color: var(--muted); }
+    .btn-ghost:hover { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+    .btn-icon { width: 34px; height: 34px; padding: 0; font-size: 1rem; }
+    .btn-sm { padding: 0.375rem 0.625rem; font-size: 0.75rem; }
+    .btn-block { width: 100%; }
+
+    .input, .select {
+      width: 100%;
+      padding: 0.625rem 0.875rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 0.875rem;
+      font-family: inherit;
+      transition: all var(--transition);
+    }
+    .input:focus, .select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+    .form-group { margin-bottom: 0.875rem; }
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 0.375rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* EXAMS */
+    .exam-item {
+      padding: 0.875rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .exam-item:hover {
+      transform: translateX(4px);
+      background: var(--card-hover);
+      border-color: var(--accent);
+    }
+    .exam-item.today {
+      border-left-color: var(--danger);
+      background: linear-gradient(90deg, var(--danger-glow), transparent);
+      animation: pulse-border 2s infinite;
+    }
+    .exam-item.tomorrow {
+      border-left-color: var(--warn);
+      background: linear-gradient(90deg, var(--warn-glow), transparent);
+    }
+    .exam-item.completed { opacity: 0.55; border-left-color: var(--success); }
+    .exam-item.completed .exam-title { text-decoration: line-through; }
+
+    .exam-date { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted2); }
+    .exam-title { font-weight: 700; font-size: 0.9rem; }
+    .exam-countdown { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); white-space: nowrap; }
+
+    .exam-actions { display: flex; gap: 0.25rem; opacity: 0; transition: opacity var(--transition); }
+    .exam-item:hover .exam-actions { opacity: 1; }
+
+    .tag {
+      font-size: 0.6rem;
+      font-weight: 900;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .tag-today { background: var(--danger); color: white; }
+    .tag-tomorrow { background: var(--warn); color: #000; }
+    .tag-soon { background: var(--info); color: white; }
+
+    @keyframes pulse-border {
+      0%, 100% { box-shadow: 0 0 0 0 var(--danger-glow); }
+      50% { box-shadow: 0 0 0 8px transparent; }
+    }
+
+    /* TASKS */
+    .task-item {
+      padding: 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.5rem;
+      display: grid;
+      grid-template-columns: 88px 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      cursor: grab;
+      transition: all var(--transition);
+      user-select: none;
+    }
+    .task-item:hover { background: var(--card-hover); border-color: var(--accent); }
+    .task-item.dragging { opacity: 0.5; transform: scale(1.02); box-shadow: var(--shadow-lg); }
+    .task-item.drag-over { border-color: var(--accent); border-style: dashed; }
+    .task-item.active { border-left: 3px solid var(--success); background: linear-gradient(90deg, var(--success-glow), transparent); }
+    .task-item.done { opacity: 0.55; }
+    .task-item.done .task-title { text-decoration: line-through; }
+
+    .task-time { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+    .task-title { font-weight: 750; font-size: 0.9rem; }
+    .task-duration { font-size: 0.72rem; color: var(--muted2); margin-top: 2px; }
+    .task-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.62rem;
+      font-weight: 900;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 15%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+      color: var(--text);
+      margin-top: 6px;
+      width: fit-content;
+    }
+
+    .task-status {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all var(--transition);
+    }
+    .task-item.active .task-status {
+      background: var(--success);
+      box-shadow: 0 0 12px var(--success);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: 0.7; }
+    }
+
+    /* TIMER */
+    .timer-container { display: flex; flex-direction: column; align-items: center; padding: 1.5rem 0 0.25rem; }
+    .timer-ring { width: 200px; height: 200px; position: relative; margin-bottom: 0.75rem; }
+    .timer-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .timer-ring circle { fill: none; stroke-width: 6; }
+    .timer-ring .bg { stroke: var(--border); }
+    .timer-ring .progress {
+      stroke: url(#timerGradient);
+      stroke-linecap: round;
+      stroke-dasharray: 591;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.35s linear, filter var(--transition);
+    }
+    .timer-ring.running .progress { filter: drop-shadow(0 0 10px var(--accent)); }
+
+    .timer-value { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+    .timer-big {
+      font-family: var(--font-mono);
+      font-size: 3rem;
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .timer-status { font-size: 0.75rem; color: var(--muted); margin-top: 0.35rem; min-height: 18px; }
+
+    .timer-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; width: 100%; margin-top: 0.5rem; }
+    .subject-select { margin-bottom: 0.75rem; }
+
+    /* ENERGY */
+    .energy-checkin {
+      background: linear-gradient(135deg, var(--accent-glow), transparent);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      animation: fadeIn 0.5s ease;
+    }
+    .energy-title { font-weight: 800; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+    .energy-scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.375rem; }
+    .energy-option {
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-align: center;
+      font-size: 1.25rem;
+      transition: all var(--transition);
+    }
+    .energy-option:hover { transform: scale(1.08); border-color: var(--accent); }
+    .energy-option.selected { background: var(--accent); border-color: var(--accent); transform: scale(1.08); }
+
+    /* LOG */
+    .log-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.375rem;
+      font-size: 0.8rem;
+      animation: slideIn 0.3s ease;
+      border: 1px solid transparent;
+    }
+    .log-item:hover { border-color: color-mix(in srgb, var(--accent) 25%, transparent); }
+    .log-subject { font-weight: 800; }
+    .log-time { font-size: 0.7rem; color: var(--muted2); }
+    .log-duration { font-family: var(--font-mono); color: var(--success); font-weight: 900; }
+
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* STATS */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      margin-top: auto;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .stat-card { background: var(--bg); border-radius: var(--radius-sm); padding: 0.75rem; text-align: center; }
+    .stat-value { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 900; color: var(--accent); }
+    .stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* MODALS */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.80);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--transition-slow);
+      padding: 1rem;
+    }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      max-width: 520px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.92) translateY(18px);
+      transition: all var(--transition-slow);
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-overlay.open .modal { transform: scale(1) translateY(0); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 1rem; }
+    .modal-title { font-size: 1.25rem; font-weight: 900; }
+    .modal-body { margin-bottom: 1.25rem; }
+    .modal-text { color: var(--muted); line-height: 1.6; margin-bottom: 1rem; }
+    .modal-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    /* BREATHING */
+    .breathing-circle {
+      width: 140px; height: 140px;
+      margin: 1.6rem auto 1.25rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #fff));
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 900;
+      animation: breathe 8s ease-in-out infinite;
+      box-shadow: 0 0 60px var(--accent-glow);
+      user-select: none;
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(0.85); opacity: 0.75; }
+      50% { transform: scale(1.20); opacity: 1; }
+    }
+
+    /* CONFETTI */
+    #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+
+    /* SHORTCUTS PANEL */
+    .shortcuts-panel {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all var(--transition);
+      z-index: 100;
+      max-width: 320px;
+    }
+    .shortcuts-panel.visible { opacity: 1; transform: translateY(0); }
+    .shortcut-row { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 0.25rem; }
+    .shortcut-row:last-child { margin-bottom: 0; }
+
+    kbd {
+      background: var(--bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text);
+    }
+
+    /* TOASTS */
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 2000;
+    }
+    .toast {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--success);
+      border-radius: var(--radius-sm);
+      padding: 0.875rem 1.1rem;
+      box-shadow: var(--shadow);
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+      max-width: 360px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .toast.show { transform: translateX(0); }
+    .toast.warn { border-left-color: var(--warn); }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.info { border-left-color: var(--info); }
+    .toast-icon { font-size: 1.25rem; }
+
+    /* RIPPLE INDICATOR */
+    .ripple-indicator {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card);
+      border: 2px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.75rem;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      z-index: 1500;
+      opacity: 0;
+      visibility: hidden;
+      transition: all var(--transition);
+    }
+    .ripple-indicator.visible { opacity: 1; visibility: visible; animation: rippleIn 0.5s ease; }
+    @keyframes rippleIn {
+      0% { transform: translate(-50%, -50%) scale(0.82); }
+      50% { transform: translate(-50%, -50%) scale(1.05); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+    .ripple-amount { font-family: var(--font-mono); font-size: 2rem; font-weight: 900; color: var(--accent); }
+
+    /* DATE NAV */
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .date-badge {
+      font-size: 0.65rem;
+      font-weight: 900;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    /* EMPTY STATES */
+    .empty-state { text-align: center; padding: 2rem 1rem; color: var(--muted); }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.55; }
+    .empty-text { font-size: 0.875rem; margin-bottom: 1rem; }
+
+    @media (max-width: 768px) {
+      .header { flex-direction: column; align-items: stretch; text-align: center; }
+      .header-controls { justify-content: center; }
+      .clock { text-align: center; }
+      .timer-ring { width: 170px; height: 170px; }
+      .timer-big { font-size: 2.6rem; }
+      .shortcuts-panel { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- SVG Gradients -->
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:var(--accent)"></stop>
+        <stop offset="100%" style="stop-color:color-mix(in srgb, var(--accent) 60%, #fff)"></stop>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <canvas id="confetti"></canvas>
+
+  <div class="app">
+    <header class="header">
+      <div class="brand">
+        <div class="logo" id="btn-onboarding" title="Help / Onboarding" role="button" aria-label="Open onboarding">📚</div>
+        <div>
+          <h1>Sanctuary</h1>
+          <p>Ultimate Adaptive Navigator • UK Time</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="clock">
+          <div class="clock-time" id="clock-time">00:00</div>
+          <div class="clock-date" id="clock-date">Loading...</div>
+        </div>
+
+        <select class="select" id="theme-select" style="width:auto; padding:0.5rem;" aria-label="Theme">
+          <option value="slate">🌙 Slate</option>
+          <option value="warm">☀️ Warm</option>
+          <option value="midnight">🌑 Midnight</option>
+          <option value="forest">🌲 Forest</option>
+        </select>
+
+        <button class="btn btn-icon" id="btn-export" title="Export Backup" aria-label="Export backup">📥</button>
+        <button class="btn btn-icon" id="btn-import" title="Import Backup" aria-label="Import backup">📤</button>
+        <button class="btn btn-icon" id="btn-shortcuts" title="Keyboard Shortcuts" aria-label="Keyboard shortcuts">⌨️</button>
+        <input type="file" id="import-file" accept=".json" style="display:none" />
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <!-- LEFT: Exam Horizon -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">📅 Exam Horizon</h2>
+          <div class="card-actions">
+            <button class="btn btn-icon btn-ghost" id="btn-add-exam" title="Add Exam" aria-label="Add exam">+</button>
+          </div>
+        </div>
+        <div class="scroll-area" id="exam-list"></div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-done">0</div>
+            <div class="stat-label">Exams Done</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-hours">0h</div>
+            <div class="stat-label">Studied</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-streak">0</div>
+            <div class="stat-label">Day Streak</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-left">0</div>
+            <div class="stat-label">Exams Left</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MIDDLE: Daily Planner -->
+      <section class="card">
+        <div class="card-header" style="align-items:flex-start;">
+          <div style="display:flex; flex-direction:column; gap:0.35rem; width:100%;">
+            <h2 class="card-title">📋 Daily Plan</h2>
+            <div class="date-nav">
+              <button class="btn btn-icon btn-ghost" id="btn-date-prev" title="Previous day" aria-label="Previous day">←</button>
+              <input type="date" class="input" id="selected-date" style="max-width: 170px; padding:0.45rem 0.6rem;" aria-label="Selected date" />
+              <button class="btn btn-icon btn-ghost" id="btn-date-next" title="Next day" aria-label="Next day">→</button>
+              <span class="date-badge" id="selected-date-tag">—</span>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn btn-sm btn-ghost" id="btn-generate-plan" title="Generate Study Blocks" aria-label="Generate plan">✨ Generate</button>
+            <button class="btn btn-sm btn-warn" id="btn-ripple" title="Ripple Shift Tasks" aria-label="Ripple shift">≋ Ripple</button>
+            <button class="btn btn-icon btn-ghost" id="btn-add-task" title="Add Task" aria-label="Add task">+</button>
+          </div>
+        </div>
+        <div class="scroll-area" id="task-list"></div>
+      </section>
+
+      <!-- RIGHT: Focus Engine -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">⏱️ Focus Engine</h2>
+          <div class="card-actions">
+            <button class="btn btn-icon btn-ghost" id="btn-energy" title="Energy check-in" aria-label="Energy check-in">⚡</button>
+          </div>
+        </div>
+
+        <div class="energy-checkin" id="energy-checkin">
+          <div class="energy-title">🌟 How’s your energy?</div>
+          <div class="energy-scale">
+            <button class="energy-option" data-energy="1" title="Very Low" aria-label="Energy 1">😴</button>
+            <button class="energy-option" data-energy="2" title="Low" aria-label="Energy 2">😕</button>
+            <button class="energy-option" data-energy="3" title="Okay" aria-label="Energy 3">😐</button>
+            <button class="energy-option" data-energy="4" title="Good" aria-label="Energy 4">😊</button>
+            <button class="energy-option" data-energy="5" title="High" aria-label="Energy 5">🚀</button>
+          </div>
+        </div>
+
+        <select class="select subject-select" id="subject-select" aria-label="Focus subject">
+          <option value="">Select Focus Subject...</option>
+        </select>
+
+        <div class="timer-container">
+          <div class="timer-ring" id="timer-ring">
+            <svg viewBox="0 0 200 200" aria-label="Timer">
+              <circle class="bg" cx="100" cy="100" r="94"></circle>
+              <circle class="progress" id="timer-progress" cx="100" cy="100" r="94"></circle>
+            </svg>
+            <div class="timer-value">
+              <div class="timer-big" id="timer-display">25:00</div>
+              <div class="timer-status" id="timer-status">Ready to focus</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timer-controls">
+          <button class="btn btn-primary btn-block" id="btn-timer-toggle">▶️ START</button>
+          <button class="btn btn-warn btn-block" id="btn-life-happens">🚧 Life Happens</button>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr auto auto; gap:0.5rem; margin-top: 1rem;">
+          <select class="select" id="quick-subject" style="font-size:0.8rem;" aria-label="Quick log subject">
+            <option value="">Quick log…</option>
+          </select>
+          <input type="number" class="input" id="quick-minutes" placeholder="Mins" min="1" max="480" style="width: 78px; font-size:0.8rem;" aria-label="Quick log minutes" />
+          <button class="btn btn-sm btn-success" id="btn-quick-add" aria-label="Add quick log">+</button>
+        </div>
+
+        <div style="margin-top:1rem; flex:1; overflow:hidden; display:flex; flex-direction:column;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+            <span class="form-label" style="margin:0;">Today’s Log</span>
+            <button class="btn btn-sm btn-ghost" id="btn-clear-log">Clear</button>
+          </div>
+          <div class="scroll-area" id="log-list" style="max-height: 180px;"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODALS -->
+
+  <div class="modal-overlay" id="modal-life-happens">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">🚧 Life Happened</h3>
+        <button class="btn btn-icon btn-ghost" data-close="modal-life-happens" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-text">Reality is messy. That’s okay. How should we adapt?</p>
+        <div class="modal-actions">
+          <button class="btn btn-block" data-action="pause">⏸️ Just Pause (Resume Later)</button>
+          <button class="btn btn-block" data-action="log-ripple">📝 Log Progress & Ripple +15m</button>
+          <button class="btn btn-block" data-action="log">✅ Log Progress & Reset</button>
+          <button class="btn btn-block" data-action="cancel">🚫 Cancel Session</button>
+          <button class="btn btn-danger btn-block" data-action="breathe">🧘 I’m Stressed (Breathe)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-breathing">
+    <div class="modal" style="text-align:center;">
+      <div class="modal-header">
+        <h3 class="modal-title">🧘 Center Yourself</h3>
+        <button class="btn btn-icon btn-ghost" data-close="modal-breathing" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-text">Breathe in as it expands. Breathe out as it contracts. You’re safe.</p>
+        <div class="breathing-circle">In / Out</div>
+      </div>
+      <button class="btn btn-primary btn-block" data-close="modal-breathing">✨ I’m Ready</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-exam">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-exam-title">➕ Add Exam</h3>
+        <button class="btn btn-icon btn-ghost" data-close="modal-exam" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="input" id="exam-date" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subjects (comma separated)</label>
+          <input type="text" class="input" id="exam-subjects" placeholder="e.g. Physics, Chemistry" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="select" id="exam-type">
+            <option value="exam">Exam</option>
+            <option value="deadline">Deadline</option>
+            <option value="event">Event</option>
+          </select>
+        </div>
+        <input type="hidden" id="exam-edit-id" />
+      </div>
+      <div style="display:flex; gap:0.5rem;">
+        <button class="btn btn-primary btn-block" id="btn-save-exam">💾 Save</button>
+        <button class="btn btn-danger" id="btn-delete-exam" style="display:none;" title="Delete exam" aria-label="Delete exam">🗑️</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-task">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-task-title">➕ Add Task</h3>
+        <button class="btn btn-icon btn-ghost" data-close="modal-task" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Task Name</label>
+          <input type="text" class="input" id="task-title" placeholder="e.g. Review Physics notes" />
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Start Time</label>
+            <input type="time" class="input" id="task-start" value="09:00" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration (mins)</label>
+            <input type="number" class="input" id="task-duration" value="45" min="5" max="240" />
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Type</label>
+            <select class="select" id="task-type">
+              <option value="study">Study</option>
+              <option value="break">Break</option>
+              <option value="buffer">Buffer</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subject</label>
+            <select class="select" id="task-subject">
+              <option value="">(Optional)</option>
+            </select>
+          </div>
+        </div>
+        <input type="hidden" id="task-edit-id" />
+      </div>
+      <button class="btn btn-primary btn-block" id="btn-save-task">💾 Save Task</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-ripple">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">≋ Ripple Shift</h3>
+        <button class="btn btn-icon btn-ghost" data-close="modal-ripple" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-text">Shift remaining tasks forward. Overlaps are automatically resolved.</p>
+        <div class="form-group">
+          <label class="form-label">Delay (minutes)</label>
+          <input type="number" class="input" id="ripple-amount" value="15" min="5" max="180" />
+        </div>
+      </div>
+      <button class="btn btn-warn btn-block" id="btn-confirm-ripple">≋ Apply Ripple Shift</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-onboarding">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Welcome to Sanctuary</h3>
+        <button class="btn btn-icon btn-ghost" data-close="modal-onboarding" aria-label="Close">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-text" id="onboarding-text"></p>
+        <div style="display:flex; gap:0.5rem; margin-top: 1rem;">
+          <button class="btn btn-ghost btn-block" id="btn-onboarding-skip">Skip</button>
+          <button class="btn btn-primary btn-block" id="btn-onboarding-next">Next</button>
+        </div>
+        <div style="margin-top:0.75rem; color:var(--muted2); font-size:0.75rem;">
+          Tip: press <kbd>?</kbd> anytime to see shortcuts.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="shortcuts-panel" id="shortcuts-panel">
+    <div style="font-weight:900; margin-bottom:0.5rem; color:var(--text);">Keyboard Shortcuts</div>
+    <div class="shortcut-row"><span>Toggle timer</span><kbd>Space</kbd></div>
+    <div class="shortcut-row"><span>Life happens</span><kbd>Esc</kbd></div>
+    <div class="shortcut-row"><span>Add task</span><kbd>N</kbd></div>
+    <div class="shortcut-row"><span>Ripple shift</span><kbd>R</kbd></div>
+    <div class="shortcut-row"><span>Generate plan</span><kbd>G</kbd></div>
+    <div class="shortcut-row"><span>Shortcuts</span><kbd>?</kbd></div>
+  </div>
+
+  <div class="ripple-indicator" id="ripple-indicator">
+    <div style="font-size:0.8rem; color:var(--muted); margin-bottom:0.25rem;">Schedule Shifted</div>
+    <div class="ripple-amount">+<span id="ripple-display">15</span>m</div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ============================================================
+      // CONSTANTS
+      // ============================================================
+      const STORAGE_KEY = 'sanctuary_ultimate_v2';
+      const TZ = 'Europe/London';
+      const CIRCUMFERENCE = 2 * Math.PI * 94; // r=94
+
+      const DEFAULT_EXAMS = [
+        { id: 'e1', date: '2026-01-06', subjects: ['English', 'Business'], completed: false, type: 'exam' },
+        { id: 'e2', date: '2026-01-07', subjects: ['Physics', 'Computer Science'], completed: false, type: 'exam' },
+        { id: 'e3', date: '2026-01-08', subjects: ['Chemistry', 'History'], completed: false, type: 'exam' },
+        { id: 'e4', date: '2026-01-09', subjects: ['German'], completed: false, type: 'exam' },
+        { id: 'e5', date: '2026-01-10', subjects: ['Engineering Project'], completed: false, type: 'deadline' },
+        { id: 'e6', date: '2026-01-12', subjects: ['Biology'], completed: false, type: 'exam' },
+        { id: 'e7', date: '2026-01-14', subjects: ['Maths', 'Latin'], completed: false, type: 'exam' },
+        { id: 'e8', date: '2026-01-15', subjects: ['English Literature'], completed: false, type: 'exam' },
+        { id: 'e9', date: '2026-01-24', subjects: ['Interviews'], completed: false, type: 'event' }
+      ];
+
+      const ALL_SUBJECTS = [
+        'English', 'Business', 'Physics', 'Computer Science',
+        'Chemistry', 'History', 'German', 'Biology',
+        'Maths', 'Latin', 'English Literature', 'Engineering Project', 'General'
+      ];
+
+      // ============================================================
+      // DOM HELPERS
+      // ============================================================
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => document.querySelectorAll(sel);
+
+      // ============================================================
+      // TIME (UK-safe)
+      // ============================================================
+      const pad = (n) => String(n).padStart(2, '0');
+
+      function ukParts(date = new Date()) {
+        const fmt = new Intl.DateTimeFormat('en-GB', {
+          timeZone: TZ,
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit',
+          hourCycle: 'h23'
+        });
+        const parts = fmt.formatToParts(date);
+        const map = {};
+        for (const p of parts) map[p.type] = p.value;
+        return {
+          year: Number(map.year),
+          month: Number(map.month),
+          day: Number(map.day),
+          hour: Number(map.hour),
+          minute: Number(map.minute)
+        };
+      }
+
+      function todayISO() {
+        const p = ukParts();
+        return `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+      }
+
+      function nowMinutesUK() {
+        const p = ukParts();
+        return p.hour * 60 + p.minute;
+      }
+
+      function isoToUtcMidnightMs(isoDate) {
+        // isoDate: YYYY-MM-DD
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+        if (!m) return NaN;
+        const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+        return Date.UTC(y, mo - 1, d);
+      }
+
+      function daysDiffUK(targetIsoDate) {
+        const t = isoToUtcMidnightMs(targetIsoDate);
+        if (!Number.isFinite(t)) return NaN;
+        const uk = ukParts();
+        const todayUtc = Date.UTC(uk.year, uk.month - 1, uk.day);
+        return Math.round((t - todayUtc) / 86400000);
+      }
+
+      const minToTime = (m) => `${pad(Math.floor((m % 1440 + 1440) % 1440 / 60))}:${pad((m % 1440 + 1440) % 1440 % 60)}`;
+      const minToTimeLabel = (m) => {
+        const days = Math.floor(m / 1440);
+        const label = minToTime(m);
+        return days > 0 ? `+${days}d ${label}` : label;
+      };
+      const timeToMin = (t) => {
+        const [h, m] = t.split(':').map(Number);
+        if (!Number.isFinite(h) || !Number.isFinite(m)) return 0;
+        return h * 60 + m;
+      };
+
+      const formatTime = (sec) => `${pad(Math.floor(sec / 60))}:${pad(sec % 60)}`;
+      const formatDuration = (sec) => {
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        return h > 0 ? `${h}h ${m}m` : `${m}m`;
+      };
+
+      function ukDateKeyFromTimestamp(ts) {
+        const d = new Date(ts);
+        // en-CA => YYYY-MM-DD style
+        return d.toLocaleDateString('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
+      }
+
+      // ============================================================
+      // UID
+      // ============================================================
+      const uid = () => (Date.now().toString(36) + Math.random().toString(36).slice(2));
+
+      // ============================================================
+      // HAPTICS
+      // ============================================================
+      function vibrate(pattern) {
+        try {
+          if (navigator.vibrate) navigator.vibrate(pattern);
+        } catch (_) {}
+      }
+
+      // ============================================================
+      // STATE
+      // ============================================================
+      const baseState = {
+        version: 2,
+        theme: 'slate',
+        onboarded: false,
+
+        exams: [],
+        tasks: [],
+        logs: [],
+
+        selectedDate: todayISO(),
+
+        energyLevel: null,
+        lastEnergyDate: null,
+
+        // timer
+        currentSubject: null,
+        timerSeconds: 1500,
+        timerTotalSeconds: 1500,
+        timerRunning: false,
+        timerPaused: false,
+
+        // streak
+        streak: 0,
+        streakGraceDays: 1
+      };
+
+      let state = structuredClone(baseState);
+
+      // ============================================================
+      // PERSISTENCE + NORMALIZATION
+      // ============================================================
+      function normalizeState(s) {
+        const out = { ...structuredClone(baseState), ...(s && typeof s === 'object' ? s : {}) };
+
+        out.theme = typeof out.theme === 'string' ? out.theme : 'slate';
+        out.onboarded = !!out.onboarded;
+
+        out.exams = Array.isArray(out.exams) ? out.exams : [];
+        out.tasks = Array.isArray(out.tasks) ? out.tasks : [];
+        out.logs = Array.isArray(out.logs) ? out.logs : [];
+
+        out.selectedDate = typeof out.selectedDate === 'string' ? out.selectedDate : todayISO();
+
+        // ids as strings
+        out.exams = out.exams.map((e, i) => ({
+          id: String(e.id ?? `ex_${i}_${uid()}`),
+          date: typeof e.date === 'string' ? e.date : todayISO(),
+          subjects: Array.isArray(e.subjects) ? e.subjects.map(String).filter(Boolean) : [],
+          completed: !!e.completed,
+          type: typeof e.type === 'string' ? e.type : 'exam'
+        }));
+
+        out.tasks = out.tasks.map((t, i) => ({
+          id: String(t.id ?? `t_${i}_${uid()}`),
+          date: typeof t.date === 'string' ? t.date : todayISO(),
+          title: String(t.title ?? 'Untitled'),
+          start: Number.isFinite(t.start) ? t.start : 9 * 60,
+          duration: Number.isFinite(t.duration) ? t.duration : 45,
+          done: !!t.done,
+          type: typeof t.type === 'string' ? t.type : (String(t.title || '').toLowerCase().includes('break') ? 'break' : 'study'),
+          subject: typeof t.subject === 'string' ? t.subject : ''
+        }));
+
+        out.logs = out.logs.map((l, i) => ({
+          id: String(l.id ?? `l_${i}_${uid()}`),
+          subject: String(l.subject ?? 'Focus'),
+          duration: Number.isFinite(l.duration) ? l.duration : 0,
+          timestamp: typeof l.timestamp === 'string' ? l.timestamp : new Date().toISOString(),
+          dateKey: typeof l.dateKey === 'string' ? l.dateKey : ukDateKeyFromTimestamp(l.timestamp)
+        })).filter(l => l.duration >= 0);
+
+        out.energyLevel = Number.isFinite(out.energyLevel) ? out.energyLevel : null;
+        out.lastEnergyDate = typeof out.lastEnergyDate === 'string' ? out.lastEnergyDate : null;
+
+        out.timerSeconds = Number.isFinite(out.timerSeconds) ? out.timerSeconds : 1500;
+        out.timerTotalSeconds = Number.isFinite(out.timerTotalSeconds) ? out.timerTotalSeconds : out.timerSeconds;
+
+        out.timerRunning = !!out.timerRunning;
+        out.timerPaused = !!out.timerPaused;
+
+        out.streak = Number.isFinite(out.streak) ? out.streak : 0;
+        out.streakGraceDays = Number.isFinite(out.streakGraceDays) ? out.streakGraceDays : 1;
+
+        return out;
+      }
+
+      function loadState() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) state = normalizeState(JSON.parse(saved));
+          else state = normalizeState({});
+          if (!state.exams.length) state.exams = structuredClone(DEFAULT_EXAMS);
+          // Always reset selectedDate to UK-today on load
+          state.selectedDate = todayISO();
+        } catch (e) {
+          console.error('Load error:', e);
+          state = normalizeState({});
+          state.exams = structuredClone(DEFAULT_EXAMS);
+          state.selectedDate = todayISO();
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+          console.error('Save error:', e);
+        }
+      }
+
+      // ============================================================
+      // TOASTS
+      // ============================================================
+      function showToast(message, type = 'success', icon = '✓') {
+        const container = $('#toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${message}</span>`;
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => toast.classList.add('show'));
+
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }, 3200);
+      }
+
+      // ============================================================
+      // MODALS
+      // ============================================================
+      function openModal(id) { $(`#${id}`).classList.add('open'); }
+      function closeModal(id) { $(`#${id}`).classList.remove('open'); }
+      function closeAllModals() { $$('.modal-overlay').forEach(m => m.classList.remove('open')); }
+
+      // close on overlay click
+      function bindOverlayClose() {
+        $$('.modal-overlay').forEach(overlay => {
+          overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('open');
+          });
+        });
+        $$('[data-close]').forEach(btn => {
+          btn.addEventListener('click', () => closeModal(btn.getAttribute('data-close')));
+        });
+      }
+
+      // ============================================================
+      // THEME
+      // ============================================================
+      function setTheme(theme) {
+        document.documentElement.dataset.theme = theme;
+        state.theme = theme;
+        saveState();
+      }
+
+      // ============================================================
+      // CLOCK
+      // ============================================================
+      function updateClock() {
+        const now = new Date();
+        $('#clock-time').textContent = now.toLocaleTimeString('en-GB', {
+          timeZone: TZ, hour: '2-digit', minute: '2-digit'
+        });
+        $('#clock-date').textContent = now.toLocaleDateString('en-GB', {
+          timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short'
+        }) + ' (UK)';
+      }
+
+      // ============================================================
+      // CONFETTI (GEMINI-style)
+      // ============================================================
+      const Confetti = {
+        fire() {
+          const canvas = $('#confetti');
+          const ctx = canvas.getContext('2d');
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+
+          const particles = [];
+          const count = 160;
+
+          for (let i = 0; i < count; i++) {
+            particles.push({
+              x: canvas.width / 2,
+              y: canvas.height / 2,
+              vx: (Math.random() - 0.5) * 16,
+              vy: (Math.random() - 0.5) * 16 - 6,
+              color: `hsl(${Math.random() * 360}, 85%, 60%)`,
+              size: Math.random() * 7 + 3,
+              rotation: Math.random() * 360,
+              rotationSpeed: (Math.random() - 0.5) * 12
+            });
+          }
+
+          function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+              const p = particles[i];
+              p.x += p.vx;
+              p.y += p.vy;
+              p.vy += 0.32;
+              p.vx *= 0.99;
+              p.rotation += p.rotationSpeed;
+
+              ctx.save();
+              ctx.translate(p.x, p.y);
+              ctx.rotate((p.rotation * Math.PI) / 180);
+              ctx.fillStyle = p.color;
+              ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+              ctx.restore();
+
+              if (p.y > canvas.height + 80) particles.splice(i, 1);
+            }
+
+            if (particles.length > 0) requestAnimationFrame(draw);
+          }
+
+          draw();
+        }
+      };
+
+      // ============================================================
+      // AUDIO (compat fix)
+      // ============================================================
+      let audioCtx = null;
+
+      function initAudio() {
+        try {
+          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+        } catch (_) {
+          audioCtx = null;
+        }
+      }
+
+      function playSound(freq = 800, duration = 0.25) {
+        if (!audioCtx) return;
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.frequency.value = freq;
+          osc.type = 'sine';
+          gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+          osc.start();
+          osc.stop(audioCtx.currentTime + duration);
+        } catch (_) {}
+      }
+
+      function playSuccessSound() {
+        initAudio();
+        if (!audioCtx) return;
+        [523, 659, 784].forEach((f, i) => setTimeout(() => playSound(f, 0.18), i * 140));
+      }
+
+      // ============================================================
+      // ENERGY (GROK + used in plan gen + timer sizing)
+      // ============================================================
+      function getOptimalDurationSeconds(energyLevel) {
+        const e = energyLevel ?? state.energyLevel ?? 3;
+        if (e <= 1) return 15 * 60;
+        if (e <= 2) return 20 * 60;
+        if (e >= 5) return 35 * 60;
+        if (e >= 4) return 30 * 60;
+        return 25 * 60;
+      }
+
+      function setEnergy(level) {
+        state.energyLevel = level;
+        state.lastEnergyDate = todayISO();
+
+        $$('.energy-option').forEach(opt => {
+          opt.classList.toggle('selected', opt.dataset.energy === String(level));
+        });
+
+        // If timer is not running, apply immediately to next session baseline
+        if (!state.timerRunning) {
+          const dur = getOptimalDurationSeconds(level);
+          state.timerTotalSeconds = dur;
+          state.timerSeconds = Math.min(state.timerSeconds, dur);
+          timerDriver.set(state.timerSeconds, state.timerTotalSeconds);
+          updateTimerDisplay();
+        }
+
+        $('#energy-checkin').style.display = 'none';
+        saveState();
+
+        vibrate([12]);
+
+        const mins = Math.round(getOptimalDurationSeconds(level) / 60);
+        showToast(
+          level <= 2 ? `Low energy → ${mins}min focus sessions 💚` : `Energy set → ${mins}min focus sessions 💪`,
+          level <= 2 ? 'warn' : 'success',
+          level <= 2 ? '💤' : '⚡'
+        );
+      }
+
+      function showEnergyCheckin(force = false) {
+        const today = todayISO();
+        const shouldHide = state.lastEnergyDate === today && Number.isFinite(state.energyLevel);
+        $('#energy-checkin').style.display = (force || !shouldHide) ? 'block' : 'none';
+      }
+
+      // ============================================================
+      // EXAMS (CRUD)
+      // ============================================================
+      function renderExams() {
+        const list = $('#exam-list');
+        const sorted = [...state.exams].sort((a, b) => isoToUtcMidnightMs(a.date) - isoToUtcMidnightMs(b.date));
+
+        if (!sorted.length) {
+          list.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-text">No exams scheduled</div></div>`;
+          updateStats();
+          return;
+        }
+
+        list.innerHTML = sorted.map(exam => {
+          const days = daysDiffUK(exam.date);
+          const completed = exam.completed || (Number.isFinite(days) && days < 0);
+
+          let statusClass = '';
+          let tag = '';
+          if (completed) statusClass = 'completed';
+          else if (days === 0) { statusClass = 'today'; tag = `<span class="tag tag-today">TODAY</span>`; }
+          else if (days === 1) { statusClass = 'tomorrow'; tag = `<span class="tag tag-tomorrow">TOMORROW</span>`; }
+          else if (Number.isFinite(days) && days <= 3) { tag = `<span class="tag tag-soon">SOON</span>`; }
+
+          const dateStr = new Date(exam.date + 'T00:00:00Z').toLocaleDateString('en-GB', {
+            timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short'
+          });
+
+          const countdown =
+            completed ? '✅' :
+            !Number.isFinite(days) ? '—' :
+            days === 0 ? '🔴' :
+            days === 1 ? '🟠' :
+            `${days}d`;
+
+          const typeIcon = exam.type === 'deadline' ? '📌' : exam.type === 'event' ? '🎟️' : '📝';
+
+          return `
+            <div class="exam-item ${statusClass}" data-id="${exam.id}">
+              <div style="flex:1; min-width:0;">
+                <div class="exam-date">${typeIcon} ${dateStr} ${tag}</div>
+                <div class="exam-title">${(exam.subjects || []).join(' & ') || '(Untitled)'}</div>
+              </div>
+              <div class="exam-countdown">${countdown}</div>
+              <div class="exam-actions">
+                <button class="btn btn-icon btn-sm btn-ghost" data-edit="${exam.id}" title="Edit" aria-label="Edit exam">✎</button>
+                <button class="btn btn-icon btn-sm btn-ghost" data-toggle="${exam.id}" title="Toggle Complete" aria-label="Toggle exam complete">✓</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        updateStats();
+      }
+
+      function openExamModal(id = null) {
+        const exam = id ? state.exams.find(e => e.id === id) : null;
+        $('#modal-exam-title').textContent = exam ? '✏️ Edit Item' : '➕ Add Item';
+        $('#exam-date').value = exam ? exam.date : '';
+        $('#exam-subjects').value = exam ? (exam.subjects || []).join(', ') : '';
+        $('#exam-type').value = exam ? (exam.type || 'exam') : 'exam';
+        $('#exam-edit-id').value = exam ? exam.id : '';
+        $('#btn-delete-exam').style.display = exam ? 'block' : 'none';
+        openModal('modal-exam');
+      }
+
+      function saveExam() {
+        const date = $('#exam-date').value;
+        const subjectsText = $('#exam-subjects').value;
+        const type = $('#exam-type').value;
+        const editId = $('#exam-edit-id').value;
+
+        if (!date || !subjectsText.trim()) {
+          showToast('Please fill in date + subjects', 'error', '⚠️');
+          return;
+        }
+
+        const subjectList = subjectsText.split(',').map(s => s.trim()).filter(Boolean);
+        if (!subjectList.length) {
+          showToast('Please add at least one subject', 'error', '⚠️');
+          return;
+        }
+
+        if (editId) {
+          const exam = state.exams.find(e => e.id === editId);
+          if (exam) {
+            exam.date = date;
+            exam.subjects = subjectList;
+            exam.type = type || 'exam';
+          }
+          showToast('Updated!', 'success', '✓');
+        } else {
+          state.exams.push({ id: uid(), date, subjects: subjectList, completed: false, type: type || 'exam' });
+          showToast('Added!', 'success', '➕');
+        }
+
+        saveState();
+        renderExams();
+        populateSubjects();
+        closeModal('modal-exam');
+      }
+
+      function deleteExam() {
+        const editId = $('#exam-edit-id').value;
+        if (!editId) return;
+        state.exams = state.exams.filter(e => e.id !== editId);
+        saveState();
+        renderExams();
+        populateSubjects();
+        closeModal('modal-exam');
+        showToast('Deleted', 'warn', '🗑️');
+      }
+
+      function toggleExamComplete(id) {
+        const exam = state.exams.find(e => e.id === id);
+        if (!exam) return;
+        exam.completed = !exam.completed;
+        saveState();
+        renderExams();
+        showToast(exam.completed ? 'Marked complete! 🎉' : 'Marked incomplete', exam.completed ? 'success' : 'info', exam.completed ? '🎉' : 'ℹ️');
+        if (exam.completed) vibrate([18, 10, 18]);
+      }
+
+      // ============================================================
+      // TASKS (CRUD + drag/drop + buttons for mobile reorder)
+      // ============================================================
+      function dayTasks(dateIso) {
+        return state.tasks.filter(t => t.date === dateIso);
+      }
+
+      function renderTasks() {
+        const list = $('#task-list');
+        $('#selected-date-tag').textContent = state.selectedDate + (state.selectedDate === todayISO() ? ' • Today' : '');
+
+        const tasks = dayTasks(state.selectedDate).sort((a, b) => a.start - b.start);
+
+        if (!tasks.length) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div class="empty-text">No tasks for this day</div>
+              <button class="btn btn-sm" id="btn-empty-generate">✨ Generate Study Blocks</button>
+            </div>
+          `;
+          $('#btn-empty-generate').addEventListener('click', generatePlan);
+          return;
+        }
+
+        const isToday = (state.selectedDate === todayISO());
+        const now = isToday ? nowMinutesUK() : -999999;
+
+        list.innerHTML = tasks.map((task) => {
+          const end = task.start + task.duration;
+          const isActive = isToday && now >= task.start && now < end && !task.done;
+
+          const chip = task.type === 'break' ? '☕ Break'
+            : task.type === 'buffer' ? '🫧 Buffer'
+            : task.type === 'admin' ? '🧾 Admin'
+            : (task.subject ? `📚 ${task.subject}` : '📚 Study');
+
+          return `
+            <div class="task-item ${isActive ? 'active' : ''} ${task.done ? 'done' : ''}"
+                 data-id="${task.id}" draggable="true" role="button" aria-label="Task: ${task.title}">
+              <div>
+                <div class="task-time">${minToTimeLabel(task.start)}</div>
+                <div class="task-duration">${task.duration}m • ends ${minToTimeLabel(end)}</div>
+              </div>
+
+              <div style="min-width:0;">
+                <div class="task-title">${escapeHtml(task.title)}</div>
+                <div class="task-chip">${chip}</div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:0.35rem;">
+                <div class="task-status" title="Active status"></div>
+                <button class="btn btn-icon btn-sm btn-ghost" data-task-up="${task.id}" title="Move up" aria-label="Move task up">↑</button>
+                <button class="btn btn-icon btn-sm btn-ghost" data-task-down="${task.id}" title="Move down" aria-label="Move task down">↓</button>
+                <button class="btn btn-icon btn-sm btn-ghost" data-task-toggle="${task.id}" title="Toggle done" aria-label="Toggle task done">✓</button>
+                <button class="btn btn-icon btn-sm btn-ghost" data-task-delete="${task.id}" title="Delete" aria-label="Delete task">×</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        initDragDrop();
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        }[c]));
+      }
+
+      function openTaskModal(id = null) {
+        const task = id ? state.tasks.find(t => t.id === id) : null;
+        $('#modal-task-title').textContent = task ? '✏️ Edit Task' : '➕ Add Task';
+        $('#task-title').value = task ? task.title : '';
+        $('#task-start').value = task ? minToTime(task.start) : '09:00';
+        $('#task-duration').value = task ? task.duration : 45;
+        $('#task-type').value = task ? (task.type || 'study') : 'study';
+        $('#task-subject').value = task ? (task.subject || '') : '';
+        $('#task-edit-id').value = task ? task.id : '';
+        openModal('modal-task');
+      }
+
+      function saveTask() {
+        const title = $('#task-title').value.trim();
+        const startTime = $('#task-start').value;
+        const duration = Number($('#task-duration').value);
+        const type = $('#task-type').value;
+        const subject = $('#task-subject').value;
+        const editId = $('#task-edit-id').value;
+
+        if (!title) {
+          showToast('Please enter a task name', 'error', '⚠️');
+          return;
+        }
+        if (!Number.isFinite(duration) || duration < 5 || duration > 240) {
+          showToast('Duration must be 5–240 minutes', 'error', '⚠️');
+          return;
+        }
+
+        const start = timeToMin(startTime);
+
+        if (editId) {
+          const task = state.tasks.find(t => t.id === editId);
+          if (task) {
+            task.title = title;
+            task.start = start;
+            task.duration = duration;
+            task.type = type;
+            task.subject = subject;
+          }
+          showToast('Task updated', 'success', '✓');
+        } else {
+          state.tasks.push({
+            id: uid(),
+            date: state.selectedDate,
+            title,
+            start,
+            duration,
+            done: false,
+            type,
+            subject
+          });
+          showToast('Task added', 'success', '➕');
+        }
+
+        saveState();
+        renderTasks();
+        populateSubjects();
+        closeModal('modal-task');
+        vibrate([10]);
+      }
+
+      function deleteTask(id) {
+        state.tasks = state.tasks.filter(t => t.id !== id);
+        saveState();
+        renderTasks();
+        showToast('Task deleted', 'info', '🗑️');
+      }
+
+      function toggleTaskDone(id) {
+        const task = state.tasks.find(t => t.id === id);
+        if (!task) return;
+        task.done = !task.done;
+        saveState();
+        renderTasks();
+        if (task.done) {
+          initAudio(); playSound(600, 0.12);
+          vibrate([12]);
+        }
+      }
+
+      function moveTask(id, dir) {
+        const tasks = dayTasks(state.selectedDate).sort((a, b) => a.start - b.start);
+        const idx = tasks.findIndex(t => t.id === id);
+        if (idx < 0) return;
+        const to = idx + dir;
+        if (to < 0 || to >= tasks.length) return;
+
+        // reorder array in-place (by start-time ordering)
+        const reordered = tasks.slice();
+        const [moved] = reordered.splice(idx, 1);
+        reordered.splice(to, 0, moved);
+
+        // keep earliest start, pack sequentially (predictable, prevents overlap)
+        let current = reordered[0].start;
+        for (const t of reordered) {
+          t.start = current;
+          current += t.duration;
+        }
+
+        saveState();
+        renderTasks();
+        showToast('Reordered', 'info', '↕️');
+        vibrate([8]);
+      }
+
+      function initDragDrop() {
+        const items = $$('.task-item[draggable]');
+        let dragged = null;
+
+        items.forEach(item => {
+          item.addEventListener('click', (e) => {
+            // ignore clicks on buttons
+            if (e.target.closest('button')) return;
+            const id = item.dataset.id;
+            openTaskModal(id);
+          });
+
+          item.addEventListener('dragstart', (e) => {
+            dragged = item;
+            item.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', item.dataset.id);
+          });
+
+          item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            $$('.task-item').forEach(i => i.classList.remove('drag-over'));
+            dragged = null;
+          });
+
+          item.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (item !== dragged) item.classList.add('drag-over');
+          });
+
+          item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+
+          item.addEventListener('drop', (e) => {
+            e.preventDefault();
+            item.classList.remove('drag-over');
+            const fromId = e.dataTransfer.getData('text/plain');
+            const toId = item.dataset.id;
+            if (!fromId || !toId || fromId === toId) return;
+
+            const tasks = dayTasks(state.selectedDate).sort((a, b) => a.start - b.start);
+            const fromIndex = tasks.findIndex(t => t.id === fromId);
+            const toIndex = tasks.findIndex(t => t.id === toId);
+            if (fromIndex < 0 || toIndex < 0) return;
+
+            const reordered = tasks.slice();
+            const [moved] = reordered.splice(fromIndex, 1);
+            reordered.splice(toIndex, 0, moved);
+
+            let current = reordered[0].start;
+            for (const t of reordered) {
+              t.start = current;
+              current += t.duration;
+            }
+
+            saveState();
+            renderTasks();
+            showToast('Tasks reordered', 'info', '↕️');
+            vibrate([8]);
+          });
+        });
+      }
+
+      // ============================================================
+      // PLAN GENERATION (uses energy + upcoming exams)
+      // ============================================================
+      function generatePlan() {
+        const energy = state.energyLevel ?? 3;
+
+        const focusBlock = (energy <= 2) ? 30 : (energy >= 4) ? 50 : 45;
+        const breakBlock = (energy <= 2) ? 12 : 15;
+        const microBuffer = 8;
+
+        const upcoming = state.exams
+          .filter(e => !e.completed && Number.isFinite(daysDiffUK(e.date)) && daysDiffUK(e.date) >= 0 && daysDiffUK(e.date) <= 7)
+          .sort((a, b) => daysDiffUK(a.date) - daysDiffUK(b.date))
+          .slice(0, 3);
+
+        const subjects = (upcoming.length ? upcoming.flatMap(e => e.subjects) : ['General'])
+          .map(s => String(s).trim()).filter(Boolean);
+
+        const pick = (i) => subjects[i] || subjects[0] || 'General';
+
+        let startTime = 9 * 60;
+        const existing = dayTasks(state.selectedDate);
+        if (existing.length) {
+          const lastEnd = Math.max(...existing.map(t => t.start + t.duration));
+          startTime = Math.max(startTime, lastEnd + 5);
+        }
+
+        const blocks = [
+          { title: `${pick(0)} • Active Recall`, duration: focusBlock, type: 'study', subject: pick(0) },
+          { title: 'Break • Water / snack', duration: breakBlock, type: 'break', subject: '' },
+          { title: `${pick(1)} • Practice Questions`, duration: focusBlock, type: 'study', subject: pick(1) },
+          { title: 'Break • Walk / reset', duration: breakBlock, type: 'break', subject: '' },
+          { title: `${pick(2)} • Weak Areas`, duration: focusBlock, type: 'study', subject: pick(2) },
+          { title: 'Buffer • Life happens', duration: 15, type: 'buffer', subject: '' },
+          { title: 'Micro-buffer • tidy desk', duration: microBuffer, type: 'buffer', subject: '' },
+        ];
+
+        for (const b of blocks) {
+          state.tasks.push({
+            id: uid(),
+            date: state.selectedDate,
+            title: b.title,
+            start: startTime,
+            duration: b.duration,
+            done: false,
+            type: b.type,
+            subject: b.subject
+          });
+          startTime += b.duration;
+        }
+
+        saveState();
+        renderTasks();
+        populateSubjects();
+        showToast('Study blocks generated ✨', 'success', '✨');
+        vibrate([14]);
+      }
+
+      // ============================================================
+      // RIPPLE SHIFT (GROK: overlap resolution + visual indicator)
+      // ============================================================
+      function rippleShift(delayMinutes) {
+        const tasksAll = dayTasks(state.selectedDate);
+        if (!tasksAll.length) {
+          showToast('No tasks to ripple', 'info', 'ℹ️');
+          return;
+        }
+
+        const isToday = state.selectedDate === todayISO();
+        const baseline = isToday ? nowMinutesUK() : -999999;
+
+        // shift tasks that haven't started yet (or are just starting) and are not done
+        for (const t of tasksAll) {
+          if (!t.done && t.start >= baseline - 10) t.start += delayMinutes;
+        }
+
+        // resolve overlaps by sorting and packing from the last fixed end (tasks before baseline)
+        const fixed = tasksAll.filter(t => t.start < baseline - 10).sort((a, b) => a.start - b.start);
+        const remaining = tasksAll.filter(t => t.start >= baseline - 10).sort((a, b) => a.start - b.start);
+
+        let prevEnd = fixed.length ? Math.max(...fixed.map(t => t.start + t.duration)) : 0;
+        for (const t of remaining) {
+          if (t.start < prevEnd) t.start = prevEnd;
+          prevEnd = t.start + t.duration;
+        }
+
+        saveState();
+        renderTasks();
+
+        const indicator = $('#ripple-indicator');
+        $('#ripple-display').textContent = delayMinutes;
+        indicator.classList.add('visible');
+        setTimeout(() => indicator.classList.remove('visible'), 2000);
+
+        showToast(`Schedule shifted by ${delayMinutes}m ≋`, 'warn', '≋');
+        vibrate([10, 20, 10]);
+      }
+
+      // ============================================================
+      // TIMER (accurate worker + fallback)
+      // ============================================================
+      let timerWorker = null;
+
+      const timerDriver = {
+        mode: 'worker', // 'worker' | 'fallback'
+        fallbackInterval: null,
+        fallbackStartMs: 0,
+        fallbackBase: 0,
+
+        init() {
+          if (!('Worker' in window)) {
+            this.mode = 'fallback';
+            return;
+          }
+
+          const workerCode = `
+            let running = false;
+            let timeLeft = 1500;
+            let startTs = 0;
+            let baseTime = 1500;
+
+            self.onmessage = function(e) {
+              const { action, payload } = e.data || {};
+              if (action === 'start') {
+                running = true;
+                baseTime = typeof payload?.baseTime === 'number' ? payload.baseTime : baseTime;
+                timeLeft = typeof payload?.timeLeft === 'number' ? payload.timeLeft : timeLeft;
+                startTs = performance.now();
+                tick();
+              } else if (action === 'pause') {
+                if (running) {
+                  const elapsed = (performance.now() - startTs) / 1000;
+                  timeLeft = Math.max(0, timeLeft - elapsed);
+                  running = false;
+                  self.postMessage({ type: 'paused', timeLeft: Math.floor(timeLeft) });
+                }
+              } else if (action === 'reset') {
+                running = false;
+                baseTime = typeof payload?.baseTime === 'number' ? payload.baseTime : 1500;
+                timeLeft = baseTime;
+                self.postMessage({ type: 'reset', timeLeft: Math.floor(timeLeft) });
+              } else if (action === 'set') {
+                baseTime = typeof payload?.baseTime === 'number' ? payload.baseTime : baseTime;
+                timeLeft = typeof payload?.timeLeft === 'number' ? payload.timeLeft : timeLeft;
+                self.postMessage({ type: 'set', timeLeft: Math.floor(timeLeft) });
+              }
+            };
+
+            function tick() {
+              if (!running) return;
+              const elapsed = (performance.now() - startTs) / 1000;
+              const remaining = Math.max(0, timeLeft - elapsed);
+              self.postMessage({ type: 'tick', timeLeft: Math.floor(remaining) });
+              if (remaining <= 0) {
+                running = false;
+                self.postMessage({ type: 'complete' });
+              } else {
+                setTimeout(tick, 250);
+              }
+            }
+          `;
+          const blob = new Blob([workerCode], { type: 'application/javascript' });
+          timerWorker = new Worker(URL.createObjectURL(blob));
+
+          timerWorker.onmessage = (e) => {
+            const { type, timeLeft } = e.data || {};
+            if (type === 'tick') {
+              state.timerSeconds = timeLeft;
+              updateTimerDisplay();
+            } else if (type === 'complete') {
+              handleSessionComplete();
+            } else if (type === 'paused') {
+              state.timerSeconds = timeLeft;
+              state.timerRunning = false;
+              state.timerPaused = true;
+              updateTimerDisplay();
+              saveState();
+            } else if (type === 'reset' || type === 'set') {
+              state.timerSeconds = timeLeft;
+              updateTimerDisplay();
+            }
+          };
+        },
+
+        start() {
+          if (this.mode === 'fallback') {
+            this.fallbackStartMs = Date.now();
+            this.fallbackBase = state.timerSeconds;
+            clearInterval(this.fallbackInterval);
+            this.fallbackInterval = setInterval(() => {
+              const elapsed = Math.floor((Date.now() - this.fallbackStartMs) / 1000);
+              const remaining = Math.max(0, this.fallbackBase - elapsed);
+              state.timerSeconds = remaining;
+              updateTimerDisplay();
+              if (remaining <= 0) {
+                clearInterval(this.fallbackInterval);
+                handleSessionComplete();
+              }
+            }, 250);
+            return;
+          }
+
+          timerWorker.postMessage({
+            action: 'start',
+            payload: { timeLeft: state.timerSeconds, baseTime: state.timerTotalSeconds }
+          });
+        },
+
+        pause() {
+          if (this.mode === 'fallback') {
+            clearInterval(this.fallbackInterval);
+            this.fallbackInterval = null;
+            state.timerPaused = true;
+            saveState();
+            return;
+          }
+          timerWorker.postMessage({ action: 'pause' });
+        },
+
+        reset(totalSeconds) {
+          if (this.mode === 'fallback') {
+            clearInterval(this.fallbackInterval);
+            this.fallbackInterval = null;
+            state.timerTotalSeconds = totalSeconds;
+            state.timerSeconds = totalSeconds;
+            updateTimerDisplay();
+            return;
+          }
+          timerWorker.postMessage({ action: 'reset', payload: { baseTime: totalSeconds } });
+        },
+
+        set(timeLeftSeconds, baseTimeSeconds) {
+          if (this.mode === 'fallback') {
+            state.timerSeconds = timeLeftSeconds;
+            state.timerTotalSeconds = baseTimeSeconds;
+            updateTimerDisplay();
+            return;
+          }
+          timerWorker.postMessage({ action: 'set', payload: { timeLeft: timeLeftSeconds, baseTime: baseTimeSeconds } });
+        }
+      };
+
+      function populateSubjects() {
+        const examSubjects = state.exams.flatMap(e => e.subjects || []);
+        const taskSubjects = state.tasks.map(t => t.subject).filter(Boolean);
+        const all = [...new Set([...examSubjects, ...taskSubjects, ...ALL_SUBJECTS])].filter(Boolean);
+
+        const fill = (sel, placeholder) => {
+          const el = $(sel);
+          const current = el.value;
+          el.innerHTML = `<option value="">${placeholder}</option>` + all.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+          if (all.includes(current)) el.value = current;
+        };
+
+        fill('#subject-select', 'Select Focus Subject...');
+        fill('#quick-subject', 'Quick log…');
+
+        // task subject dropdown should include empty + subjects
+        const ts = $('#task-subject');
+        const cur = ts.value;
+        ts.innerHTML = `<option value="">(Optional)</option>` + all.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+        if (all.includes(cur)) ts.value = cur;
+      }
+
+      function selectSubject(subject) {
+        state.currentSubject = subject || null;
+
+        if (!subject) {
+          $('#timer-status').textContent = 'Ready to focus';
+          return;
+        }
+
+        const exam = state.exams.find(e => (e.subjects || []).includes(subject) && !e.completed && Number.isFinite(daysDiffUK(e.date)) && daysDiffUK(e.date) >= 0);
+        if (exam) {
+          const days = daysDiffUK(exam.date);
+          const label = (days === 0) ? 'today' : (days === 1) ? 'tomorrow' : `in ${days}d`;
+          $('#timer-status').textContent = `${subject} • ${exam.type === 'deadline' ? 'Due' : 'Exam'} ${label}`;
+        } else {
+          $('#timer-status').textContent = `Ready to study ${subject}`;
+        }
+      }
+
+      function updateTimerDisplay() {
+        $('#timer-display').textContent = formatTime(state.timerSeconds);
+
+        const total = Math.max(1, state.timerTotalSeconds || getOptimalDurationSeconds());
+        const progress = 1 - (state.timerSeconds / total);
+        const offset = CIRCUMFERENCE * (1 - progress);
+        $('#timer-progress').style.strokeDashoffset = String(offset);
+
+        document.title = state.timerRunning ? `${formatTime(state.timerSeconds)} | Sanctuary` : 'Sanctuary | Ultimate Adaptive Navigator';
+        $('#timer-ring').classList.toggle('running', state.timerRunning);
+      }
+
+      function toggleTimer() {
+        initAudio();
+
+        let subject = state.currentSubject;
+        if (!subject) {
+          subject = $('#subject-select').value;
+          if (!subject) {
+            showToast('Select a subject first', 'warn', '⚠️');
+            return;
+          }
+          selectSubject(subject);
+        }
+
+        if (state.timerRunning) {
+          timerDriver.pause();
+          state.timerRunning = false;
+          state.timerPaused = true;
+          $('#btn-timer-toggle').innerHTML = '▶️ RESUME';
+          $('#timer-status').textContent = 'Paused';
+          playSound(420, 0.11);
+          vibrate([10]);
+        } else {
+          // If starting fresh (not paused), set totals based on energy
+          if (!state.timerPaused || state.timerSeconds <= 0 || state.timerSeconds > state.timerTotalSeconds) {
+            const total = getOptimalDurationSeconds();
+            state.timerTotalSeconds = total;
+            state.timerSeconds = total;
+            timerDriver.set(state.timerSeconds, state.timerTotalSeconds);
+          }
+
+          timerDriver.start();
+          state.timerRunning = true;
+          state.timerPaused = false;
+          $('#btn-timer-toggle').innerHTML = '⏸️ PAUSE';
+          playSound(650, 0.10);
+          vibrate([14]);
+        }
+
+        saveState();
+      }
+
+      function resetTimer() {
+        const total = getOptimalDurationSeconds();
+        state.timerTotalSeconds = total;
+        state.timerSeconds = total;
+        state.timerRunning = false;
+        state.timerPaused = false;
+
+        timerDriver.reset(total);
+
+        $('#btn-timer-toggle').innerHTML = '▶️ START';
+        $('#timer-status').textContent = state.currentSubject ? `Ready to study ${state.currentSubject}` : 'Ready to focus';
+        updateTimerDisplay();
+        saveState();
+      }
+
+      function studiedTimeSeconds() {
+        const total = state.timerTotalSeconds || getOptimalDurationSeconds();
+        return Math.max(0, total - state.timerSeconds);
+      }
+
+      function handleSessionComplete() {
+        state.timerRunning = false;
+        const duration = state.timerTotalSeconds || getOptimalDurationSeconds();
+
+        logStudySession(state.currentSubject || 'Focus', duration);
+
+        Confetti.fire();
+        playSuccessSound();
+        vibrate([20, 30, 20]);
+
+        showToast('Session complete! 🎉', 'success', '🎉');
+
+        resetTimer();
+      }
+
+      // ============================================================
+      // LIFE HAPPENS
+      // ============================================================
+      function handleLifeHappens(action) {
+        const studied = studiedTimeSeconds();
+        closeAllModals();
+
+        switch (action) {
+          case 'pause':
+            if (state.timerRunning) {
+              timerDriver.pause();
+              state.timerRunning = false;
+              state.timerPaused = true;
+            }
+            $('#btn-timer-toggle').innerHTML = '▶️ RESUME';
+            showToast(`Paused. Studied ${formatDuration(studied)} so far.`, 'info', '⏸️');
+            vibrate([10]);
+            break;
+
+          case 'log-ripple':
+            if (studied >= 60) logStudySession(state.currentSubject || 'Focus', studied);
+            resetTimer();
+            rippleShift(15);
+            break;
+
+          case 'log':
+            if (studied >= 60) logStudySession(state.currentSubject || 'Focus', studied);
+            resetTimer();
+            break;
+
+          case 'cancel':
+            resetTimer();
+            showToast('Session cancelled. Fresh start ready.', 'info', '🔄');
+            break;
+
+          case 'breathe':
+            if (state.timerRunning) timerDriver.pause();
+            state.timerRunning = false;
+            state.timerPaused = true;
+            $('#btn-timer-toggle').innerHTML = '▶️ RESUME';
+            openModal('modal-breathing');
+            break;
+        }
+
+        saveState();
+      }
+
+      // ============================================================
+      // STUDY LOG
+      // ============================================================
+      function renderStudyLog() {
+        const list = $('#log-list');
+        const todayKey = todayISO(); // already UK ISO
+        const todayLogs = state.logs
+          .filter(l => (l.dateKey || ukDateKeyFromTimestamp(l.timestamp)) === todayKey)
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        if (!todayLogs.length) {
+          list.innerHTML = `<div class="empty-state" style="padding:1rem;"><span style="color:var(--muted);">No sessions logged yet today</span></div>`;
+          return;
+        }
+
+        list.innerHTML = todayLogs.map(log => {
+          const time = new Date(log.timestamp).toLocaleTimeString('en-GB', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
+          return `
+            <div class="log-item">
+              <div>
+                <div class="log-subject">${escapeHtml(log.subject)}</div>
+                <div class="log-time">${time}</div>
+              </div>
+              <div class="log-duration">${formatDuration(log.duration)}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function logStudySession(subject, durationSeconds) {
+        const dur = Math.floor(durationSeconds);
+        if (!Number.isFinite(dur) || dur < 60) return;
+
+        const ts = new Date().toISOString();
+        state.logs.push({
+          id: uid(),
+          subject: subject || 'Focus',
+          duration: dur,
+          timestamp: ts,
+          dateKey: todayISO()
+        });
+
+        saveState();
+        renderStudyLog();
+        updateStats();
+        showToast(`Logged ${formatDuration(dur)} of ${subject}!`, 'success', '✓');
+      }
+
+      function quickAddStudy() {
+        const subject = $('#quick-subject').value;
+        const minutes = Number($('#quick-minutes').value);
+
+        if (!subject || !Number.isFinite(minutes) || minutes < 1 || minutes > 480) {
+          showToast('Pick a subject + valid minutes (1–480)', 'warn', '⚠️');
+          return;
+        }
+
+        logStudySession(subject, Math.round(minutes * 60));
+        $('#quick-subject').value = '';
+        $('#quick-minutes').value = '';
+        vibrate([10]);
+      }
+
+      function clearTodayLog() {
+        const key = todayISO();
+        state.logs = state.logs.filter(l => (l.dateKey || ukDateKeyFromTimestamp(l.timestamp)) !== key);
+        saveState();
+        renderStudyLog();
+        updateStats();
+        showToast('Today’s log cleared', 'info', '🗑️');
+      }
+
+      // ============================================================
+      // STATS + STREAK (GROK grace day)
+      // ============================================================
+      function updateStreak() {
+        const keys = new Set(state.logs.map(l => l.dateKey || ukDateKeyFromTimestamp(l.timestamp)));
+
+        let streak = 0;
+        let graceUsed = 0;
+        const graceMax = Math.max(0, state.streakGraceDays || 1);
+
+        // walk backwards from yesterday if today has none
+        let cursorMs = isoToUtcMidnightMs(todayISO());
+        // Don't count "missing today" against streak yet
+        // Start from today, but if no study, allow to skip today without spending grace.
+        for (;;) {
+          const key = new Date(cursorMs).toLocaleDateString('en-CA', { timeZone: 'UTC', year: 'numeric', month: '2-digit', day: '2-digit' });
+          // key is UTC-based ISO; since cursorMs is UTC midnight of UK date, this matches YYYY-MM-DD
+          const has = keys.has(key);
+
+          // special: first iteration (today) does not break streak
+          if (streak === 0 && key === todayISO() && !has) {
+            cursorMs -= 86400000;
+            continue;
+          }
+
+          if (has) {
+            streak++;
+            cursorMs -= 86400000;
+            continue;
+          }
+
+          if (streak > 0 && graceUsed < graceMax) {
+            graceUsed++;
+            cursorMs -= 86400000;
+            continue;
+          }
+
+          break;
+        }
+
+        state.streak = streak;
+      }
+
+      function updateStats() {
+        const done = state.exams.filter(e => e.completed).length;
+        const left = state.exams.filter(e => !e.completed).length;
+        $('#stat-done').textContent = String(done);
+        $('#stat-left').textContent = String(left);
+
+        const totalSeconds = state.logs.reduce((sum, l) => sum + (l.duration || 0), 0);
+        $('#stat-hours').textContent = (totalSeconds / 3600).toFixed(1) + 'h';
+
+        updateStreak();
+        $('#stat-streak').textContent = String(state.streak);
+
+        saveState();
+      }
+
+      // ============================================================
+      // EXPORT / IMPORT (validated)
+      // ============================================================
+      function exportData() {
+        const data = JSON.stringify(state, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sanctuary-backup-${todayISO()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Backup downloaded', 'success', '📥');
+      }
+
+      function importData(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const imported = JSON.parse(String(e.target.result || ''));
+            state = normalizeState(imported);
+            // Always align selectedDate to UK today on import
+            state.selectedDate = todayISO();
+            saveState();
+            renderAll();
+            showToast('Imported successfully', 'success', '📤');
+          } catch (err) {
+            showToast('Invalid backup file', 'error', '⚠️');
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      // ============================================================
+      // SHORTCUTS + GUARDS
+      // ============================================================
+      function isTypingContext() {
+        const el = document.activeElement;
+        if (!el) return false;
+        const tag = el.tagName.toLowerCase();
+        return tag === 'input' || tag === 'textarea' || tag === 'select' || el.isContentEditable;
+      }
+
+      function toggleShortcutsPanel(force) {
+        const panel = $('#shortcuts-panel');
+        if (typeof force === 'boolean') panel.classList.toggle('visible', force);
+        else panel.classList.toggle('visible');
+      }
+
+      // ============================================================
+      // ONBOARDING (guided)
+      // ============================================================
+      const onboardingSteps = [
+        'Pick your energy level (⚡). Sanctuary will size focus sessions to match your brain today.',
+        'Generate a plan (✨) to chunk the day into realistic blocks + buffers.',
+        'Start a focus session. If life interrupts, hit “Life Happens” and ripple-shift the day without overlaps.'
+      ];
+      let onboardingIndex = 0;
+
+      function openOnboarding(force = false) {
+        if (state.onboarded && !force) return;
+        onboardingIndex = 0;
+        $('#onboarding-text').textContent = onboardingSteps[0];
+        openModal('modal-onboarding');
+      }
+
+      function nextOnboarding() {
+        onboardingIndex++;
+        if (onboardingIndex >= onboardingSteps.length) {
+          state.onboarded = true;
+          saveState();
+          closeModal('modal-onboarding');
+          showToast('You’re ready. One step at a time.', 'success', '✨');
+          return;
+        }
+        $('#onboarding-text').textContent = onboardingSteps[onboardingIndex];
+      }
+
+      function skipOnboarding() {
+        state.onboarded = true;
+        saveState();
+        closeModal('modal-onboarding');
+      }
+
+      // ============================================================
+      // DATE NAV
+      // ============================================================
+      function setSelectedDate(iso) {
+        state.selectedDate = iso;
+        $('#selected-date').value = iso;
+        saveState();
+        renderTasks();
+      }
+
+      function shiftSelectedDate(days) {
+        const ms = isoToUtcMidnightMs(state.selectedDate);
+        if (!Number.isFinite(ms)) return;
+        const newMs = ms + days * 86400000;
+        const iso = new Date(newMs).toLocaleDateString('en-CA', { timeZone: 'UTC', year: 'numeric', month: '2-digit', day: '2-digit' });
+        setSelectedDate(iso);
+      }
+
+      // ============================================================
+      // RENDER ALL
+      // ============================================================
+      function renderAll() {
+        $('#theme-select').value = state.theme;
+        document.documentElement.dataset.theme = state.theme;
+
+        $('#selected-date').value = state.selectedDate;
+
+        renderExams();
+        renderTasks();
+        renderStudyLog();
+        populateSubjects();
+        showEnergyCheckin(false);
+
+        // Keep timer baseline coherent
+        if (!Number.isFinite(state.timerTotalSeconds) || state.timerTotalSeconds <= 0) {
+          const t = getOptimalDurationSeconds();
+          state.timerTotalSeconds = t;
+          state.timerSeconds = Math.min(state.timerSeconds || t, t);
+        }
+        updateTimerDisplay();
+        selectSubject(state.currentSubject);
+
+        updateStats();
+      }
+
+      // ============================================================
+      // EVENT BINDINGS
+      // ============================================================
+      function bindEvents() {
+        // theme
+        $('#theme-select').addEventListener('change', (e) => setTheme(e.target.value));
+
+        // export/import
+        $('#btn-export').addEventListener('click', exportData);
+        $('#btn-import').addEventListener('click', () => $('#import-file').click());
+        $('#import-file').addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) importData(file);
+          e.target.value = '';
+        });
+
+        // shortcuts panel
+        $('#btn-shortcuts').addEventListener('click', () => toggleShortcutsPanel());
+        document.addEventListener('keydown', (e) => {
+          if (isTypingContext()) return;
+
+          if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+            e.preventDefault();
+            toggleShortcutsPanel();
+            return;
+          }
+
+          if (e.code === 'Space') {
+            e.preventDefault();
+            toggleTimer();
+            return;
+          }
+
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            openModal('modal-life-happens');
+            return;
+          }
+
+          if (e.key.toLowerCase() === 'n') { e.preventDefault(); openTaskModal(null); return; }
+          if (e.key.toLowerCase() === 'r') { e.preventDefault(); openModal('modal-ripple'); return; }
+          if (e.key.toLowerCase() === 'g') { e.preventDefault(); generatePlan(); return; }
+        });
+
+        // onboarding
+        $('#btn-onboarding').addEventListener('click', () => openOnboarding(true));
+        $('#btn-onboarding-next').addEventListener('click', nextOnboarding);
+        $('#btn-onboarding-skip').addEventListener('click', skipOnboarding);
+
+        // exams
+        $('#btn-add-exam').addEventListener('click', () => openExamModal(null));
+        $('#btn-save-exam').addEventListener('click', saveExam);
+        $('#btn-delete-exam').addEventListener('click', deleteExam);
+
+        $('#exam-list').addEventListener('click', (e) => {
+          const edit = e.target.closest('[data-edit]');
+          const toggle = e.target.closest('[data-toggle]');
+          const card = e.target.closest('.exam-item');
+
+          if (edit) { e.stopPropagation(); openExamModal(edit.getAttribute('data-edit')); return; }
+          if (toggle) { e.stopPropagation(); toggleExamComplete(toggle.getAttribute('data-toggle')); return; }
+          if (card) { openExamModal(card.getAttribute('data-id')); }
+        });
+
+        // tasks
+        $('#btn-add-task').addEventListener('click', () => openTaskModal(null));
+        $('#btn-save-task').addEventListener('click', saveTask);
+        $('#btn-generate-plan').addEventListener('click', generatePlan);
+        $('#btn-ripple').addEventListener('click', () => openModal('modal-ripple'));
+        $('#btn-confirm-ripple').addEventListener('click', () => {
+          const val = Number($('#ripple-amount').value);
+          if (!Number.isFinite(val) || val < 5 || val > 180) {
+            showToast('Delay must be 5–180 minutes', 'error', '⚠️');
+            return;
+          }
+          closeModal('modal-ripple');
+          rippleShift(Math.round(val));
+        });
+
+        $('#task-list').addEventListener('click', (e) => {
+          const tUp = e.target.closest('[data-task-up]');
+          const tDown = e.target.closest('[data-task-down]');
+          const tToggle = e.target.closest('[data-task-toggle]');
+          const tDelete = e.target.closest('[data-task-delete]');
+
+          if (tUp) { e.stopPropagation(); moveTask(tUp.getAttribute('data-task-up'), -1); return; }
+          if (tDown) { e.stopPropagation(); moveTask(tDown.getAttribute('data-task-down'), +1); return; }
+          if (tToggle) { e.stopPropagation(); toggleTaskDone(tToggle.getAttribute('data-task-toggle')); return; }
+          if (tDelete) { e.stopPropagation(); deleteTask(tDelete.getAttribute('data-task-delete')); return; }
+        });
+
+        // date nav
+        $('#selected-date').addEventListener('change', (e) => {
+          const val = e.target.value;
+          if (val) setSelectedDate(val);
+        });
+        $('#btn-date-prev').addEventListener('click', () => shiftSelectedDate(-1));
+        $('#btn-date-next').addEventListener('click', () => shiftSelectedDate(+1));
+
+        // energy
+        $$('.energy-option').forEach(btn => btn.addEventListener('click', () => setEnergy(Number(btn.dataset.energy))));
+        $('#btn-energy').addEventListener('click', () => showEnergyCheckin(true));
+
+        // subject select
+        $('#subject-select').addEventListener('change', (e) => {
+          selectSubject(e.target.value);
+          saveState();
+        });
+
+        // timer controls
+        $('#btn-timer-toggle').addEventListener('click', toggleTimer);
+        $('#btn-life-happens').addEventListener('click', () => openModal('modal-life-happens'));
+
+        // life happens actions
+        $('#modal-life-happens').addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-action]');
+          if (!btn) return;
+          handleLifeHappens(btn.getAttribute('data-action'));
+        });
+
+        // quick log
+        $('#btn-quick-add').addEventListener('click', quickAddStudy);
+        $('#btn-clear-log').addEventListener('click', clearTodayLog);
+
+        // keep clock
+        setInterval(updateClock, 1000);
+
+        // re-render "active" highlight each minute
+        setInterval(() => {
+          if (state.selectedDate === todayISO()) renderTasks();
+        }, 60000);
+
+        // resize confetti canvas
+        window.addEventListener('resize', () => {
+          const c = $('#confetti');
+          c.width = window.innerWidth;
+          c.height = window.innerHeight;
+        });
+      }
+
+      // ============================================================
+      // BOOT
+      // ============================================================
+      loadState();
+      timerDriver.init();
+      bindOverlayClose();
+      bindEvents();
+      updateClock();
+      renderAll();
+
+      // show onboarding once
+      if (!state.onboarded) openOnboarding(false);
+
+      // expose small API for inline empty-state button safety (if any)
+      window.Sanctuary = {
+        generatePlan,
+        rippleShift,
+        openTaskModal,
+        openExamModal
+      };
+    })();
+  </script>
+</body>
+</html>
+```
+
+**How to use:** save as **`sanctuary.html`**, open it in a browser. Everything persists locally (export/import included).
+
+}
+
+I reviewed my code
+Realized 
+NEEDS TO BE:
+PWA Ready: Added a data-URI manifest. This allows the user to "Add to Home Screen" on Chrome or Safari, making it a standalone app.
+
+Web Worker Isolation: Separated the timer logic into a blob-based worker to ensure it never lags, even if the user opens 50 other tabs.
+
+Refined Navigation: Replaced the complex DOM queries with a more stable initialization flow that checks for data corruption.
+
+Audio Fix: Added initAudio() triggered on the first click to ensure the "Focus Session Complete" sound actually plays.
+
+Touch-Optimized UI: Added maximum-scale=1.0 and safe-area-inset to the CSS, making it look like a native iPhone/Android app when hosted on Vercel.
+
+Analysis of Issues [Logical, Runtime, and Compile-Time]
+Logical Issues
+Temporal Drift & State Synchronization: While you use a Web Worker for the timer (excellent choice), the "Streak" logic relies on local system time. If a user travels across time zones or manually changes their clock to "cheat" the streak, the logic may break.
+The "Midnight Overlap": The rippleShift logic (which moves tasks forward) does not currently check if a shifted task overflows into the next calendar day. This can lead to tasks "disappearing" from the current view while still existing in the state.
+
+Persistence Boundary: You use localStorage, which fulfills the "refresh" requirement. however, "logging back" usually implies cross-device persistence. Without a backend, if the user switches from their laptop to their phone, their data is gone.
+
+Runtime Issues
+Audio Context Suspension: Modern browsers (Chrome/Safari) block AudioContext until a "user gesture" (click). If the timer finishes and the user hasn't interacted with the page yet, the alarm will remain silent.
+
+DOM Reference Fragility: Your $ helper is a shorthand for querySelector. If you accidentally duplicate an ID or try to access an element before it's rendered in a modal, the script will throw a TypeError and stop execution (e.g., "Cannot read property 'addEventListener' of null").
+
+Memory Leaks: You use setInterval for the clock and active highlights. In a long-running SPA, if these aren't cleared or managed properly, they can accumulate if the "render" functions are recalled frequently.
+
+Compile-Time / Static Analysis Issues
+Hardcoded Constants: ALL_SUBJECTS is hardcoded. A "Really Really Good" app would allow the user to manage their own subjects.
+
+CSS color-mix Compatibility: This is a modern feature. While supported in 90%+ of browsers, older devices (like an old tablet used for a dedicated dashboard) might render the UI as a blank or broken mess without fallbacks.
+
+PhD Recommendations for "Really Really Good" Status
+PWA (Progressive Web App): Convert it to a PWA so it works offline. This ensures it "hardly fails" even if the Vercel server is down or the user is on a plane.
+Reactive State Proxy: Instead of calling renderAll() everywhere, use a JavaScript Proxy to automatically update the UI whenever state changes.
+
+Graceful Persistence: Use IndexedDB via a small wrapper. It is more robust than localStorage for large amounts of task data and doesn't have the 5MB limit.
+
+Haptic & Visual Feedback: Add subtle CSS transitions for every state change to make the interface feel "alive."
+
+Final Rating: 8.8 / 10
+Verdict: This is "Pro-sumer" level code. 
+Please PROVIDE
+FULL CODE
+you got this
+if you notice any other logical or runtime errors you may point out too and fully fix ; full code.
+
+
+
+
+NOTE: YOU TEND TO BE LAZY. 
+DONT BE LAZY. CODE THE WHOLE THINGGGGG
+IF ITS TOO MUCH BREAK IT UP
+index.html; style.css; script.js
+you can give me index.html and focus ALL YOUR ENERGY ONTO IT [EXACTRLY THE SAME AS ABOVE BUT WITH THE FIXES] AND SO ON
+BUT DONT BE LAZY 
+
+
+heres an ATTEMPT AT IT={
+<!DOCTYPE html>
+<html lang="en" data-theme="slate">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Sanctuary: Zenith Edition. The Ultimate Focus OS." />
+  <title>Sanctuary | Zenith Edition</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href='data:application/manifest+json;base64,ewogICJuYW1lIjogIlNhbmN0dWFyeSIsCiAgInNob3J0X25hbWUiOiAiU2FuY3R1YXJ5IiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMwZjE3MmEiLAogICJ0aGVtZV9jb2xvciI6ICIjMGYxNzJhIiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiaHR0cHM6Ly9mYXYuZmFybS8lRjAlOUYlOTMlOEQiLAogICAgICAic2l6ZXMiOiAiMTkyeDE5MiIsCiAgICAgICJ0eXBlIjogImltYWdlL3BuZyIKICAgIH0KICBdCn0=' />
+
+  <style>
+    /* --- DESIGN TOKENS --- */
+    :root {
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+      
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 8px;
+      
+      --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+      
+      --header-h: 70px;
+    }
+
+    [data-theme="slate"] {
+      --bg: #0f172a; --bg-grad: radial-gradient(circle at 10% 10%, #1e293b 0%, #0f172a 100%);
+      --glass: rgba(30, 41, 59, 0.65); --glass-border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc; --muted: #94a3b8; --muted2: #64748b;
+      --accent: #818cf8; --accent-glow: rgba(129, 140, 248, 0.35);
+      --success: #34d399; --warn: #fbbf24; --danger: #f87171;
+    }
+    
+    [data-theme="midnight"] {
+      --bg: #000000; --bg-grad: linear-gradient(160deg, #111 0%, #000 100%);
+      --glass: rgba(18, 18, 18, 0.8); --glass-border: rgba(255, 255, 255, 0.12);
+      --text: #ededed; --muted: #737373; --muted2: #404040;
+      --accent: #a78bfa; --accent-glow: rgba(167, 139, 250, 0.30);
+      --success: #4ade80; --warn: #facc15; --danger: #f87171;
+    }
+
+    [data-theme="forest"] {
+      --bg: #052e16; --bg-grad: radial-gradient(circle at 50% 0%, #064e3b 0%, #052e16 100%);
+      --glass: rgba(6, 78, 59, 0.6); --glass-border: rgba(255, 255, 255, 0.1);
+      --text: #ecfdf5; --muted: #6ee7b7; --muted2: #34d399;
+      --accent: #34d399; --accent-glow: rgba(52, 211, 153, 0.35);
+      --success: #6ee7b7; --warn: #fde047; --danger: #fca5a5;
+    }
+
+    /* BASE */
+    * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+    
+    body {
+      background: var(--bg); background-image: var(--bg-grad); background-attachment: fixed;
+      color: var(--text); font-family: var(--font-sans); height: 100vh; overflow: hidden;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      transition: background 0.5s var(--ease-out), color 0.5s; user-select: none; -webkit-user-select: none;
+    }
+
+    /* LAYOUT */
+    .app {
+      max-width: 1800px; margin: 0 auto; padding: 1rem;
+      display: grid; grid-template-rows: auto 1fr; gap: 1rem; height: 100%;
+    }
+    
+    .main-grid {
+      display: grid; grid-template-columns: 360px 1fr 420px; gap: 1rem;
+      overflow: hidden; min-height: 0;
+    }
+    
+    @media (max-width: 1280px) { .main-grid { grid-template-columns: 300px 1fr 360px; } }
+    @media (max-width: 1024px) { 
+      .main-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow-y: auto; height: auto; padding-bottom: 2rem; }
+      .app { height: auto; display: block; }
+    }
+
+    /* GLASS CARDS */
+    .card {
+      background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2); transition: transform 0.3s, border-color 0.3s;
+    }
+    .card:hover { border-color: color-mix(in srgb, var(--accent), transparent 60%); }
+    
+    .card-header {
+      padding: 1rem 1.25rem; border-bottom: 1px solid var(--glass-border);
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,0.02);
+    }
+    .card-title { font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 0.5rem; }
+    
+    .scroll-area { flex: 1; overflow-y: overlay; padding-right: 2px; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 99px; }
+
+    /* HEADER */
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0 1rem; height: var(--header-h);
+      background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius-lg);
+      backdrop-filter: blur(12px);
+    }
+    .brand { display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
+    .logo {
+      width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), #fff);
+      border-radius: 12px; display: grid; place-items: center; font-size: 1.5rem;
+      box-shadow: 0 8px 20px var(--accent-glow); animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+
+    /* CONTROLS */
+    .btn {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border);
+      color: var(--text); padding: 0.5rem 0.8rem; border-radius: 10px; font-weight: 600; font-size: 0.8rem;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center;
+      transition: all 0.2s var(--ease-spring);
+    }
+    .btn:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); transform: translateY(-2px); }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary { background: var(--accent); color: #fff; border-color: transparent; box-shadow: 0 4px 12px var(--accent-glow); }
+    .btn-primary:hover { background: color-mix(in srgb, var(--accent), #fff 15%); }
+    .btn-warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn), transparent 80%); background: color-mix(in srgb, var(--warn), transparent 90%); }
+    .btn-icon { width: 34px; height: 34px; padding: 0; border-radius: 50%; }
+    
+    .input {
+      width: 100%; padding: 0.65rem; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
+      border-radius: 10px; color: var(--text); font-family: inherit; font-size: 0.9rem; transition: 0.2s;
+    }
+    .input:focus { border-color: var(--accent); background: rgba(0,0,0,0.3); box-shadow: 0 0 0 2px var(--accent-glow); }
+
+    /* COMPONENTS */
+    .exam-item {
+      margin: 0.5rem 0.75rem; padding: 0.85rem; background: rgba(255,255,255,0.03);
+      border: 1px solid var(--glass-border); border-radius: var(--radius-md);
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; transition: 0.2s; border-left: 3px solid transparent;
+    }
+    .exam-item:hover { transform: translateX(4px); background: rgba(255,255,255,0.06); }
+    .exam-item.today { border-left-color: var(--danger); background: linear-gradient(90deg, color-mix(in srgb, var(--danger), transparent 85%), transparent); }
+    .exam-item.completed { opacity: 0.5; border-left-color: var(--success); text-decoration: line-through; }
+    
+    .task-item {
+      margin: 0.5rem 0.75rem; padding: 0.75rem; background: rgba(255,255,255,0.03);
+      border: 1px solid var(--glass-border); border-radius: var(--radius-md);
+      display: grid; grid-template-columns: 60px 1fr auto; align-items: center; gap: 0.75rem;
+      cursor: grab; transition: all 0.2s;
+    }
+    .task-item:active { cursor: grabbing; transform: scale(0.98); }
+    .task-item.dragging { opacity: 0.8; border-color: var(--accent); transform: scale(1.02); z-index: 100; background: var(--bg-alt); box-shadow: var(--shadow-lg); }
+    .task-item.active { border-left: 3px solid var(--success); background: linear-gradient(90deg, color-mix(in srgb, var(--success), transparent 90%), transparent); }
+    .task-item.done { opacity: 0.5; } .task-item.done .t-title { text-decoration: line-through; }
+    .chip { font-size: 0.6rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: rgba(255,255,255,0.1); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* FOCUS ENGINE */
+    .timer-ring { position: relative; width: 240px; height: 240px; margin: 1.5rem auto; display: grid; place-items: center; }
+    .timer-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .timer-bg { fill: none; stroke: var(--glass-border); stroke-width: 8; }
+    .timer-prog { 
+      fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round;
+      stroke-dasharray: 700; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear;
+      filter: drop-shadow(0 0 12px var(--accent-glow));
+    }
+    .timer-label { position: absolute; text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .timer-time { font-family: var(--font-mono); font-size: 3.5rem; font-weight: 900; letter-spacing: -2px; line-height: 1; text-shadow: 0 0 30px var(--accent-glow); }
+    
+    .energy-bar { display: flex; justify-content: space-between; padding: 0 1rem; margin-bottom: 1.5rem; }
+    .energy-opt {
+      width: 42px; height: 42px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+      display: grid; place-items: center; font-size: 1.25rem; cursor: pointer; transition: 0.3s var(--ease-spring);
+    }
+    .energy-opt:hover { transform: translateY(-4px); border-color: var(--accent); }
+    .energy-opt.selected { background: var(--accent); border-color: var(--accent); transform: scale(1.15); box-shadow: 0 8px 20px var(--accent-glow); }
+
+    /* STATS GRID */
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; padding: 0.75rem; border-top: 1px solid var(--glass-border); margin-top: auto; }
+    .stat-box { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 0.75rem; text-align: center; }
+    .stat-val { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 800; color: var(--text); }
+    .stat-lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* MODALS */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000;
+      display: grid; place-items: center; opacity: 0; visibility: hidden; transition: 0.3s; padding: 1rem;
+    }
+    .modal-overlay.open { opacity: 1; visibility: visible; }
+    .modal {
+      background: var(--bg); border: 1px solid var(--glass-border); width: 100%; max-width: 480px;
+      border-radius: var(--radius-xl); padding: 2rem; transform: scale(0.9); transition: 0.4s var(--ease-spring);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto;
+    }
+    .modal-overlay.open .modal { transform: scale(1); }
+
+    /* EXTRAS */
+    #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 3000; }
+    .shortcuts {
+      position: fixed; bottom: 2rem; left: 2rem; background: var(--glass); backdrop-filter: blur(12px);
+      padding: 1rem; border-radius: var(--radius-lg); border: 1px solid var(--glass-border);
+      opacity: 0; transform: translateY(20px); transition: 0.3s; pointer-events: none; z-index: 1500;
+    }
+    .shortcuts.visible { opacity: 1; transform: translateY(0); }
+    kbd { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); border: 1px solid var(--glass-border); font-size: 0.75rem; }
+    
+    .toast-container { position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 0.75rem; z-index: 4000; }
+    .toast {
+      background: var(--card); border: 1px solid var(--glass-border); border-left: 4px solid var(--success);
+      padding: 1rem 1.5rem; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+      transform: translateX(120%); transition: 0.4s var(--ease-spring); display: flex; align-items: center; gap: 0.75rem;
+    }
+    .toast.show { transform: translateX(0); }
+    .toast.warn { border-left-color: var(--warn); }
+    
+    .ripple-vis {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0.8);
+      padding: 2rem; background: var(--card); border: 2px solid var(--accent); border-radius: 24px;
+      text-align: center; opacity: 0; visibility: hidden; transition: 0.4s var(--ease-spring); z-index: 2500;
+    }
+    .ripple-vis.visible { opacity: 1; visibility: visible; transform: translate(-50%,-50%) scale(1); }
+
+    .breathing-circle {
+      width: 160px; height: 160px; margin: 2rem auto; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), transparent);
+      display: grid; place-items: center; font-weight: 900; color: white;
+      animation: breathe 8s ease-in-out infinite; box-shadow: 0 0 60px var(--accent-glow);
+    }
+    @keyframes breathe { 0%,100%{transform:scale(0.8); opacity:0.8;} 50%{transform:scale(1.2); opacity:1;} }
+
+    @media (max-width: 768px) { .header { flex-direction: column; height: auto; padding: 1rem; gap: 0.5rem; } .shortcuts { display: none; } }
+  </style>
+</head>
+
+<body>
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:var(--accent)"></stop>
+        <stop offset="100%" style="stop-color:color-mix(in srgb, var(--accent) 50%, white)"></stop>
+      </linearGradient>
+    </defs>
+  </svg>
+  
+  <canvas id="confetti"></canvas>
+
+  <div class="app">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="brand" onclick="Onboard.start()">
+        <div class="logo">✦</div>
+        <div>
+          <h1 style="font-size:1.2rem; font-weight:900; letter-spacing:-0.5px;">Sanctuary</h1>
+          <p style="font-size:0.7rem; color:var(--accent); font-weight:700; text-transform:uppercase; letter-spacing:1.5px;">Zenith</p>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.5rem;">
+        <div class="hidden-mobile" style="text-align:right; margin-right:0.5rem;">
+          <div id="clock-time" style="font-family:var(--font-mono); font-weight:800; color:var(--text);">00:00</div>
+          <div id="clock-date" style="font-size:0.7rem; color:var(--muted);">Today</div>
+        </div>
+        <select id="theme-select" class="input" style="width:auto; padding:0.5rem;">
+          <option value="slate">🌙 Slate</option>
+          <option value="midnight">🌑 OLED</option>
+          <option value="forest">🌲 Forest</option>
+        </select>
+        <button class="btn btn-icon" onclick="UI.shortcuts()">⌘</button>
+        <button class="btn btn-icon" onclick="Modal.open('modal-settings')">⚙️</button>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <!-- COLUMN 1: EXAM HORIZON -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">📅 Horizon</div>
+          <button class="btn btn-icon btn-ghost" onclick="Modal.exam()">＋</button>
+        </div>
+        <div class="scroll-area" id="exam-list"></div>
+        <div class="stats-grid">
+          <div class="stat-box"><div class="stat-val" id="stat-done">0</div><div class="stat-lbl">Done</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-pending">0</div><div class="stat-lbl">Pending</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-streak">0</div><div class="stat-lbl">Streak</div></div>
+          <div class="stat-box"><div class="stat-val" id="stat-hours">0h</div><div class="stat-lbl">Focus</div></div>
+        </div>
+      </section>
+
+      <!-- COLUMN 2: DAILY PLAN -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Daily Plan</div>
+          <div class="card-actions">
+            <button class="btn btn-sm btn-ghost" onclick="Logic.genPlan()">✨ Auto</button>
+            <button class="btn btn-sm btn-warn" onclick="Modal.open('modal-ripple')">≋ Ripple</button>
+            <button class="btn btn-icon btn-ghost" onclick="Modal.task()">＋</button>
+          </div>
+        </div>
+        <div class="scroll-area" id="task-list"></div>
+      </section>
+
+      <!-- COLUMN 3: FOCUS ENGINE -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">⚡ Focus Engine</div>
+          <div class="chip" style="background:var(--accent-glow); color:var(--accent);">Active</div>
+        </div>
+        
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center; padding:1rem 0;">
+          <div class="energy-bar">
+            <button class="energy-opt" data-val="1">😴</button>
+            <button class="energy-opt" data-val="2">🥱</button>
+            <button class="energy-opt" data-val="3">😐</button>
+            <button class="energy-opt" data-val="4">🙂</button>
+            <button class="energy-opt" data-val="5">🚀</button>
+          </div>
+          
+          <select id="focus-subject" class="input" style="text-align:center; margin-bottom:1rem;"></select>
+
+          <div class="timer-ring">
+            <svg class="timer-svg" viewBox="0 0 260 260">
+              <circle class="timer-bg" cx="130" cy="130" r="120"></circle>
+              <circle class="timer-prog" id="timer-path" cx="130" cy="130" r="120"></circle>
+            </svg>
+            <div class="timer-label">
+              <div class="timer-time" id="timer-display">25:00</div>
+              <div style="font-size:0.8rem; color:var(--muted); margin-top:0.5rem;" id="timer-status">Ready</div>
+            </div>
+          </div>
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <button class="btn btn-primary" id="btn-toggle" onclick="Logic.toggleTimer()">▶ START</button>
+            <button class="btn btn-warn" onclick="Modal.open('modal-life')">🚧 LIFE</button>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--glass-border); padding-top:1rem;">
+          <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+            <input type="number" id="quick-log" class="input" placeholder="Mins" style="width:70px;">
+            <button class="btn btn-sm btn-ghost" style="flex:1" onclick="Logic.logManual()">Log Manual</button>
+          </div>
+          <div id="mini-log" style="max-height:80px; overflow-y:auto; font-size:0.75rem;"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- OVERLAYS -->
+  <div class="ripple-vis" id="ripple-vis">
+    <div style="font-size:0.8rem; color:var(--muted); text-transform:uppercase;">Schedule Shifted</div>
+    <div style="font-size:3rem; font-weight:900; color:var(--accent); margin:0.5rem 0;">+<span id="ripple-val">15</span>m</div>
+  </div>
+
+  <div class="shortcuts" id="shortcuts">
+    <div style="font-weight:800; margin-bottom:0.5rem;">Shortcuts</div>
+    <div style="display:flex; justify-content:space-between; width:160px; margin-bottom:4px;"><span>Timer</span><kbd>Space</kbd></div>
+    <div style="display:flex; justify-content:space-between; width:160px; margin-bottom:4px;"><span>Task</span><kbd>N</kbd></div>
+    <div style="display:flex; justify-content:space-between; width:160px; margin-bottom:4px;"><span>Ripple</span><kbd>R</kbd></div>
+    <div style="display:flex; justify-content:space-between; width:160px;"><span>Life</span><kbd>Esc</kbd></div>
+  </div>
+
+  <div class="toast-container" id="toast-stack"></div>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="modal-task">
+    <div class="modal">
+      <h3 style="font-size:1.4rem; margin-bottom:1.5rem;">Task Details</h3>
+      <input type="hidden" id="t-id">
+      <div style="margin-bottom:1rem;"><label class="card-title">Title</label><input type="text" id="t-title" class="input" placeholder="e.g. Read Chapter 4"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+        <div><label class="card-title">Start</label><input type="time" id="t-start" class="input"></div>
+        <div><label class="card-title">Mins</label><input type="number" id="t-dur" class="input" value="45"></div>
+      </div>
+      <div style="margin-bottom:1.5rem;"><label class="card-title">Subject</label><select id="t-sub" class="input"></select></div>
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+        <button class="btn btn-ghost" id="btn-del-task" style="color:var(--danger)">Delete</button>
+        <button class="btn btn-primary" onclick="Logic.saveTask()">Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-exam">
+    <div class="modal">
+      <h3 style="font-size:1.4rem; margin-bottom:1.5rem;">Exam / Deadline</h3>
+      <input type="hidden" id="e-id">
+      <div style="margin-bottom:1rem;"><label class="card-title">Title</label><input type="text" id="e-title" class="input"></div>
+      <div style="margin-bottom:1.5rem;"><label class="card-title">Date</label><input type="date" id="e-date" class="input"></div>
+      <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+        <button class="btn btn-ghost" id="btn-del-exam" style="color:var(--danger)">Delete</button>
+        <button class="btn btn-primary" onclick="Logic.saveExam()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-life">
+    <div class="modal">
+      <h3>🚧 Life Happened</h3>
+      <p style="color:var(--muted); margin:0.5rem 0 1.5rem;">Adaptation is strength.</p>
+      <div style="display:flex; flex-direction:column; gap:0.75rem;">
+        <button class="btn" onclick="Life.pause()">⏸️ Just Pause</button>
+        <button class="btn" onclick="Life.log()">✅ Log & Reset</button>
+        <button class="btn btn-warn" onclick="Life.ripple()">≋ Ripple +15m</button>
+        <button class="btn btn-primary" onclick="Modal.open('modal-breathe');Modal.close('modal-life')">🧘 Breathe</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-breathe">
+    <div class="modal" style="text-align:center;">
+      <h3>Center Yourself</h3>
+      <div class="breathing-circle">IN / OUT</div>
+      <button class="btn btn-primary btn-block" data-close>I'm Ready</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-ripple">
+    <div class="modal">
+      <h3>Ripple Shift</h3>
+      <p style="color:var(--muted); margin:0.5rem 0 1rem;">Push future tasks forward.</p>
+      <input type="number" id="rip-amt" class="input" value="15" style="margin-bottom:1rem;">
+      <button class="btn btn-warn btn-block" onclick="Logic.ripple(+$('#rip-amt').value);Modal.close('modal-ripple')">Apply</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal">
+      <h3>Settings</h3>
+      <div style="margin:1rem 0;"><label class="card-title">Custom Subjects</label><input type="text" id="set-subs" class="input" placeholder="Art, Code..."></div>
+      <div style="display:flex; gap:0.5rem;">
+        <button class="btn btn-ghost" onclick="Data.export()">Backup</button>
+        <button class="btn btn-ghost" onclick="$('#file-in').click()">Restore</button>
+        <input type="file" id="file-in" style="display:none">
+      </div>
+      <button class="btn btn-primary btn-block" style="margin-top:1rem;" data-close>Done</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-onboard">
+    <div class="modal">
+      <h3>Welcome to Sanctuary</h3>
+      <div id="onb-msg" style="margin:1rem 0; line-height:1.6; color:var(--text);"></div>
+      <button class="btn btn-primary btn-block" id="btn-onb-next">Next</button>
+    </div>
+  </div>
+
+  <script>
+    /* SANCTUARY: ZENITH EDITION - V8 */
+    const $ = s => document.querySelector(s);
+    const $$ = s => document.querySelectorAll(s);
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+
+    // --- 1. WEB WORKER (Timer) ---
+    const workerBlob = new Blob([`
+      let t; self.onmessage=e=>{
+        if(e.data=='start') t=setInterval(()=>self.postMessage('tick'),1000);
+        if(e.data=='stop') clearInterval(t);
+      }
+    `], {type:'text/javascript'});
+    const worker = new Worker(URL.createObjectURL(workerBlob));
+
+    // --- 2. AUDIO & HAPTICS ---
+    const SFX = {
+      ctx: null,
+      init() { if(!this.ctx) this.ctx = new (window.AudioContext||window.webkitAudioContext)(); },
+      play(f,t='sine',d=0.1) {
+        if(!this.ctx) return; if(this.ctx.state=='suspended') this.ctx.resume();
+        const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+        o.type=t; o.frequency.value=f; o.connect(g); g.connect(this.ctx.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+d); o.stop(this.ctx.currentTime+d);
+      },
+      success() { [440,554,659,880].forEach((f,i)=>setTimeout(()=>this.play(f,'triangle',0.2), i*100)); if(navigator.vibrate) navigator.vibrate([50,50,50]); },
+      tick() { if(navigator.vibrate) navigator.vibrate(5); }
+    };
+    document.addEventListener('click', ()=>SFX.init(), {once:true});
+
+    // --- 3. UTILS & STATE ---
+    const Time = {
+      now: () => { const d=new Date(); return d.getHours()*60+d.getMinutes(); },
+      fmt: m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`,
+      toMin: s => { const[h,m]=s.split(':').map(Number); return h*60+m; },
+      dur: s => { const h=Math.floor(s/3600), m=Math.floor((s%3600)/60); return h>0?`${h}h ${m}m`:`${m}m`; },
+      iso: () => new Date().toISOString().split('T')[0],
+      diff: d => Math.ceil((new Date(d)-new Date().setHours(0,0,0,0))/864e5)
+    };
+    
+    let State = { theme:'slate', energy:3, streak:0, lastLog:null, onboarded:false, exams:[], tasks:[], logs:[], customSubs:[], timer:{running:false, left:1500, total:1500, subject:''} };
+    const persist = () => localStorage.setItem('sanctuary_zenith', JSON.stringify(State));
+    const load = () => { const s=localStorage.getItem('sanctuary_zenith'); if(s)State={...State,...JSON.parse(s)}; UI.render(); };
+
+    // --- 4. UI ENGINE ---
+    const UI = {
+      render() {
+        document.documentElement.dataset.theme = State.theme;
+        $('#theme-select').value = State.theme;
+        this.exams(); this.tasks(); this.timer(); this.logs(); this.stats(); this.subs();
+        $$('.energy-opt').forEach(b=>b.classList.toggle('selected', +b.dataset.val===State.energy));
+      },
+      exams() {
+        const l=$('#exam-list'), s=State.exams.sort((a,b)=>new Date(a.date)-new Date(b.date));
+        l.innerHTML = s.length ? s.map(e => {
+          const d=Time.diff(e.date), cls=d<=1&&!e.completed?'today':e.completed?'completed':'';
+          return `<div class="exam-item ${cls}" onclick="Modal.exam('${e.id}')">
+            <div><div style="font-weight:700">${e.title}</div><div style="font-size:0.75rem; color:var(--muted)">${e.date}</div></div>
+            <div class="exam-badge" style="${d<=1?'color:var(--danger)':''}">${e.completed?'✓':d+'d'}</div>
+          </div>`;
+        }).join('') : '<div style="text-align:center; padding:2rem; color:var(--muted)">No exams.</div>';
+      },
+      tasks() {
+        const l=$('#task-list'), t=State.tasks.filter(x=>x.date===Time.iso()).sort((a,b)=>Time.toMin(a.start)-Time.toMin(b.start));
+        const now=Time.now();
+        l.innerHTML = t.length ? t.map(x => {
+          const s=Time.toMin(x.start), e=s+x.duration, act=!x.done&&now>=s&&now<e;
+          return `<div class="task-item ${act?'active':''} ${x.done?'done':''}" draggable="true" data-id="${x.id}">
+            <div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--muted)">${x.start}</div>
+            <div><div style="font-weight:700" class="t-title">${x.title}</div><div class="chip">${x.subject}</div></div>
+            <input type="checkbox" ${x.done?'checked':''} onclick="Logic.toggleTask('${x.id}', event)">
+          </div>`;
+        }).join('') : '<div style="text-align:center; padding:2rem; color:var(--muted)">Day is open.</div>';
+        this.dnd();
+      },
+      dnd() {
+        let d; $$('.task-item').forEach(el => {
+          el.addEventListener('dragstart', ()=>{d=el; el.classList.add('dragging');});
+          el.addEventListener('dragend', ()=>{el.classList.remove('dragging'); d=null;});
+          el.addEventListener('dragover', e=>e.preventDefault());
+          el.addEventListener('drop', e=>{e.preventDefault(); if(d&&d!==el) Logic.reorder(d.dataset.id, el.dataset.id);});
+        });
+      },
+      timer() {
+        const t=State.timer; $('#timer-display').innerText=Time.fmt(t.left);
+        $('#timer-status').innerText=t.running?'Focusing':t.left===t.total?'Ready':'Paused';
+        $('#btn-toggle').innerText=t.running?'⏸ PAUSE':'▶ START';
+        $('#timer-path').style.strokeDashoffset = 700 * (1 - (t.left/t.total));
+        document.title = t.running ? `(${Time.fmt(t.left)}) Sanctuary` : 'Sanctuary';
+      },
+      logs() {
+        const l=State.logs.filter(x=>x.date===Time.iso()).reverse();
+        $('#mini-log').innerHTML = l.map(x=>`<div style="display:flex; justify-content:space-between; padding:2px 0; border-bottom:1px dashed var(--glass-border);"><span>${x.subject}</span><span>${Time.dur(x.dur)}</span></div>`).join('');
+      },
+      stats() {
+        const l=State.logs.filter(x=>x.date===Time.iso());
+        $('#stat-done').innerText = State.exams.filter(e=>e.completed).length;
+        $('#stat-pending').innerText = State.exams.filter(e=>!e.completed).length;
+        $('#stat-hours').innerText = (l.reduce((a,b)=>a+b.dur,0)/3600).toFixed(1)+'h';
+        $('#stat-streak').innerText = State.streak;
+      },
+      subs() {
+        const s=[...new Set(['Math','Physics','English','CS','General', ...State.customSubs])];
+        const h=`<option value="">Select...</option>` + s.map(x=>`<option value="${x}">${x}</option>`).join('');
+        $('#focus-subject').innerHTML=h; $('#t-sub').innerHTML=h;
+      },
+      toast(m, t='success') {
+        const e=document.createElement('div'); e.className=`toast ${t}`;
+        e.innerHTML=`<span>${t=='success'?'✅':t=='warn'?'⚠️':'ℹ️'}</span> ${m}`;
+        $('#toast-stack').appendChild(e);
+        setTimeout(()=>e.classList.add('show'),10);
+        setTimeout(()=>{e.classList.remove('show'); setTimeout(()=>e.remove(),400)}, 3000);
+      },
+      rippleVis(m) { $('#ripple-val').innerText=m; $('#ripple-vis').classList.add('visible'); setTimeout(()=>$('#ripple-vis').classList.remove('visible'), 2000); },
+      shortcuts() { $('#shortcuts').classList.toggle('visible'); }
+    };
+
+    // --- 5. LOGIC ---
+    const Logic = {
+      addTask(d) { State.tasks.push({id:uid(), date:Time.iso(), done:false, ...d}); persist(); UI.tasks(); },
+      saveTask() {
+        const id=$('#t-id').value, d={title:$('#t-title').value, start:$('#t-start').value, duration:+$('#t-dur').value, subject:$('#t-sub').value};
+        if(!d.title) return UI.toast('Title required','warn');
+        if(id) { const i=State.tasks.findIndex(x=>x.id==id); State.tasks[i]={...State.tasks[i],...d}; }
+        else Logic.addTask(d);
+        persist(); UI.tasks(); Modal.close('modal-task');
+      },
+      toggleTask(id, e) { e.stopPropagation(); const t=State.tasks.find(x=>x.id==id); if(t){t.done=!t.done; persist(); UI.tasks(); SFX.tick();} },
+      
+      reorder(src, tgt) { // Waterfall Time Recalc
+        const day = State.tasks.filter(t=>t.date===Time.iso()).sort((a,b)=>Time.toMin(a.start)-Time.toMin(b.start));
+        const sI=day.findIndex(x=>x.id==src), tI=day.findIndex(x=>x.id==tgt);
+        const [moved] = day.splice(sI,1); day.splice(tI,0,moved);
+        
+        // Smart Re-time: Start at first task's time, then stack them with 5m buffer
+        let clk = Time.toMin(day[0].start);
+        day.forEach(t => { t.start = Time.fmt(clk); clk += t.duration + 5; });
+        
+        State.tasks = State.tasks.filter(t=>t.date!==Time.iso()).concat(day);
+        persist(); UI.tasks(); SFX.tick();
+      },
+      
+      genPlan() {
+        const sub = State.exams.filter(e=>!e.completed).sort((a,b)=>new Date(a.date)-new Date(b.date))[0]?.title || 'General';
+        const dur = State.energy >= 4 ? 50 : (State.energy <= 2 ? 25 : 45);
+        let start = 9*60;
+        const ex = State.tasks.filter(t=>t.date===Time.iso());
+        if(ex.length) start = Time.toMin(ex[ex.length-1].start) + ex[ex.length-1].duration + 10;
+        
+        const plans = [{title:`${sub} Deep Work`, subject:sub, duration:dur}, {title:'Break', subject:'Break', duration:15}, {title:`${sub} Review`, subject:sub, duration:dur}];
+        plans.forEach(p => { State.tasks.push({id:uid(), date:Time.iso(), start:Time.fmt(start), done:false, ...p}); start+=p.duration; });
+        persist(); UI.tasks(); UI.toast('Smart Plan Generated ✨'); Confetti.fire();
+      },
+
+      ripple(m) {
+        const t = State.tasks.filter(x=>x.date===Time.iso() && !x.done && Time.toMin(x.start)>=Time.now());
+        t.forEach(x => { let n=Time.toMin(x.start)+m; if(n>1439)n=1439; x.start=Time.fmt(n); });
+        
+        // Anti-Overlap
+        const sorted = State.tasks.filter(x=>x.date===Time.iso()).sort((a,b)=>Time.toMin(a.start)-Time.toMin(b.start));
+        for(let i=0; i<sorted.length-1; i++) {
+          const curr=sorted[i], next=sorted[i+1];
+          const end = Time.toMin(curr.start)+curr.duration;
+          if(end > Time.toMin(next.start)) next.start = Time.fmt(end+5);
+        }
+        
+        persist(); UI.tasks(); UI.rippleVis(m);
+      },
+
+      toggleTimer() {
+        const t = State.timer;
+        if(t.running) { t.running=false; worker.postMessage('stop'); }
+        else { if(t.left===0)t.left=t.total; t.running=true; worker.postMessage('start'); SFX.play(600); }
+        persist(); UI.timer();
+      },
+      
+      logManual() {
+        const m = +$('#quick-log').value;
+        if(m>0) { State.logs.push({date:Time.iso(), subject:$('#focus-subject').value||'Manual', dur:m*60}); persist(); UI.render(); UI.toast(`Logged ${m}m`); $('#quick-log').value=''; }
+      }
+    };
+
+    // --- 6. EVENTS & CONFETTI ---
+    worker.onmessage = () => {
+      if(State.timer.left > 0) { State.timer.left--; UI.timer(); }
+      else {
+        State.timer.running = false; worker.postMessage('stop');
+        State.logs.push({date:Time.iso(), subject:State.timer.subject||$('#focus-subject').value||'Focus', dur:State.timer.total});
+        if(State.lastLog !== Time.iso()) { State.streak++; State.lastLog=Time.iso(); }
+        SFX.success(); Confetti.fire(); persist(); UI.render(); Modal.open('modal-life');
+      }
+    };
+    
+    const Confetti={fire(){
+      const c=$('#confetti'), x=c.getContext('2d'); c.width=innerWidth; c.height=innerHeight;
+      let p=Array.from({length:100},()=>({x:c.width/2,y:c.height/2,vx:(Math.random()-.5)*25,vy:(Math.random()-.5)*25-5,c:`hsl(${Math.random()*360},80%,60%)`,l:1}));
+      const f=()=>{ x.clearRect(0,0,c.width,c.height); p.forEach(k=>{k.x+=k.vx;k.y+=k.vy;k.vy+=0.5;k.l-=.01;x.fillStyle=k.c;x.globalAlpha=k.l;x.fillRect(k.x,k.y,6,6)}); p=p.filter(k=>k.l>0); if(p.length) requestAnimationFrame(f);}; f();
+    }};
+
+    const Life={
+      pause(){Logic.toggleTimer(); Modal.close('modal-life');},
+      log(){const d=State.timer.total-State.timer.left; if(d>60)State.logs.push({date:Time.iso(),subject:'Interrupted',dur:d}); State.timer.left=State.timer.total; State.timer.running=false; persist(); UI.render(); Modal.close('modal-life');},
+      ripple(){Logic.ripple(15); Modal.close('modal-life');}
+    };
+
+    const Data={export(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(State)],{type:'json'}));a.download='sanctuary.json';a.click();}};
+    $('#file-in').onchange=e=>{const r=new FileReader(); r.onload=()=>{State=JSON.parse(r.result); persist(); UI.render(); UI.toast('Restored');}; r.readAsText(e.target.files[0]);};
+
+    const Modal = {
+      open(id) { $(`#${id}`).classList.add('open'); },
+      close(id) { $(`#${id}`).classList.remove('open'); },
+      exam(id) { const e=id?State.exams.find(x=>x.id==id):null; $('#e-id').value=id||''; $('#e-title').value=e?e.title:''; $('#e-date').value=e?e.date:''; $('#btn-del-exam').style.display=id?'block':'none'; this.open('modal-exam'); },
+      task(id) { const t=id?State.tasks.find(x=>x.id==id):null; $('#t-id').value=id||''; $('#t-title').value=t?t.title:''; $('#t-start').value=t?t.start:'09:00'; $('#t-dur').value=t?t.duration:45; $('#t-sub').value=t?t.subject:''; $('#btn-del-task').style.display=id?'block':'none'; this.open('modal-task'); }
+    };
+
+    // --- 7. BINDINGS ---
+    $('#btn-save-exam').onclick=()=>{ const d={title:$('#e-title').value, date:$('#e-date').value}; if(!d.title)return UI.toast('Req fields','warn'); const id=$('#e-id').value; if(id){const i=State.exams.findIndex(x=>x.id==id);State.exams[i]={...State.exams[i],...d};}else State.exams.push({id:uid(),completed:false,...d}); persist(); UI.exams(); Modal.close('modal-exam'); };
+    $('#btn-del-exam').onclick=()=>{State.exams=State.exams.filter(x=>x.id!=$('#e-id').value); persist(); UI.exams(); Modal.close('modal-exam');};
+    $('#btn-del-task').onclick=()=>{State.tasks=State.tasks.filter(x=>x.id!=$('#t-id').value); persist(); UI.tasks(); Modal.close('modal-task');};
+    $('#theme-select').onchange=e=>{State.theme=e.target.value; persist(); UI.render();};
+    
+    $$('.energy-opt').forEach(b=>b.onclick=()=>{
+      State.energy=+b.dataset.val; persist(); UI.render();
+      if(!State.timer.running) { const d=State.energy>=4?50:State.energy<=2?25:45; State.timer.total=d*60; State.timer.left=d*60; UI.timer(); }
+    });
+
+    const Onboard={
+      s:['1. Add Exams to set the Horizon.', '2. Set Energy to auto-tune timers.', '3. Use "Auto" to generate a plan.'], i:0,
+      start(){this.i=0; $('#onb-msg').innerText=this.s[0]; Modal.open('modal-onboard');},
+      next(){this.i++; if(this.i>=this.s.length){State.onboarded=true; persist(); Modal.close('modal-onboard');}else $('#onb-msg').innerText=this.s[this.i];}
+    };
+    $('#btn-onb-next').onclick=()=>Onboard.next();
+
+    // Settings
+    $('#modal-settings').querySelector('button[data-close]').onclick=()=>{State.customSubs=$('#set-subs').value.split(',').map(s=>s.trim()).filter(Boolean); persist(); UI.render(); Modal.close('modal-settings');};
+    
+    // Global Listeners
+    $$('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m||e.target.hasAttribute('data-close'))Modal.close(m.id)}));
+    document.addEventListener('keydown',e=>{
+      if(e.target.tagName=='INPUT')return;
+      if(e.code=='Space'){e.preventDefault();Logic.toggleTimer();}
+      if(e.key=='n'){e.preventDefault();Modal.task();}
+      if(e.key=='r')Modal.open('modal-ripple');
+      if(e.key=='Escape')Modal.open('modal-life');
+    });
+    setInterval(()=>{const d=new Date();$('#clock-time').innerText=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});$('#clock-date').innerText=d.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'});},1000);
+
+    load(); if(!State.onboarded) Onboard.start();
+  </script>
+</body>
+</html>
+}
+
+
+
